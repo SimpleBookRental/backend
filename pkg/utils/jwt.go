@@ -8,8 +8,8 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// getSecretKey gets the JWT secret key from environment variables
-func getAccessSecret() []byte {
+// GetAccessSecret gets the JWT secret key from environment variables
+func GetAccessSecret() []byte {
 	secret := os.Getenv("JWT_ACCESS_SECRET")
 	if secret == "" {
 		secret = "access_token_secret_key" // Default value
@@ -72,7 +72,7 @@ type TokenPair struct {
 // GenerateTokenPair generates a new access and refresh token pair
 func GenerateTokenPair(userID, email string) (*TokenPair, error) {
 	// Generate access token
-	accessToken, err := generateToken(userID, email, getAccessSecret(), getAccessExpiration())
+	accessToken, err := generateToken(userID, email, GetAccessSecret(), getAccessExpiration())
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate access token: %w", err)
 	}
