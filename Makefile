@@ -1,0 +1,82 @@
+.PHONY: build up down logs ps clean help restart test test-coverage start
+
+# Default target
+.DEFAULT_GOAL := help
+
+# Variables
+DOCKER_COMPOSE = docker-compose
+
+# Build the Docker images
+build:
+	@echo "Building Docker images..."
+	$(DOCKER_COMPOSE) build
+
+# Start the services
+up:
+	@echo "Starting services..."
+	$(DOCKER_COMPOSE) up -d
+
+# Stop the services
+down:
+	@echo "Stopping services..."
+	$(DOCKER_COMPOSE) down
+
+# Show logs
+logs:
+	@echo "Showing logs..."
+	$(DOCKER_COMPOSE) logs -f
+
+# Show running containers
+ps:
+	@echo "Listing containers..."
+	$(DOCKER_COMPOSE) ps
+
+# Clean up volumes
+clean:
+	@echo "Cleaning up volumes..."
+	$(DOCKER_COMPOSE) down -v
+
+# Restart services
+restart: down up
+	@echo "Services restarted"
+
+# Run tests
+test:
+	@echo "Running tests..."
+	go test ./... -count=1 -coverprofile=coverage.out
+
+# Run tests with coverage report
+test-coverage: test
+	@echo "Generating coverage report..."
+	go tool cover -html=coverage.out -o coverage.html
+
+# Build and start services
+start: build up logs
+	@echo "Services started"
+
+# Build the application locally
+build-local:
+	@echo "Building application locally..."
+	go build -o bin/api cmd/api/main.go
+
+# Run the application locally
+run:
+	@echo "Running application locally..."
+	go run cmd/api/main.go
+
+# Help
+help:
+	@echo "Available commands:"
+	@echo "  make build        - Build Docker images"
+	@echo "  make build-local  - Build application locally"
+	@echo "  make run          - Run application locally"
+	@echo "  make up           - Start services"
+	@echo "  make down         - Stop services"
+	@echo "  make logs         - Show logs"
+	@echo "  make ps           - List containers"
+	@echo "  make clean        - Clean up volumes"
+	@echo "  make restart      - Restart services"
+	@echo "  make test         - Run tests"
+	@echo "  make test-coverage - Run tests with coverage report"
+	@echo "  make start        - Build and start services"
+	@echo "  make help         - Show this help"
