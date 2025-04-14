@@ -51,14 +51,14 @@ func (r *BookRepository) FindByISBN(isbn string) (*models.Book, error) {
 // FindAll finds all books
 func (r *BookRepository) FindAll() ([]models.Book, error) {
 	var books []models.Book
-	err := r.db.Find(&books).Error
+	err := r.db.Preload("User").Find(&books).Error
 	return books, err
 }
 
 // FindByUserID finds all books by user ID
 func (r *BookRepository) FindByUserID(userID string) ([]models.Book, error) {
 	var books []models.Book
-	err := r.db.Where("user_id = ?", userID).Find(&books).Error
+	err := r.db.Preload("User").Where("user_id = ?", userID).Find(&books).Error
 	return books, err
 }
 

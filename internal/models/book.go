@@ -15,7 +15,7 @@ type Book struct {
 	ISBN        string    `gorm:"size:20;not null;unique" json:"isbn"`
 	Description string    `gorm:"type:text" json:"description"`
 	UserID      string    `gorm:"type:uuid;not null" json:"user_id"`
-	User        User      `gorm:"foreignKey:UserID" json:"user,omitempty"`
+	User        *User     `gorm:"foreignKey:UserID" json:"user,omitempty"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }

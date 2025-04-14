@@ -13,7 +13,7 @@ type User struct {
 	Name      string    `gorm:"size:100;not null" json:"name"`
 	Email     string    `gorm:"size:100;not null;unique" json:"email"`
 	Password  string    `gorm:"size:100;not null" json:"-"`
-	Books     []Book    `gorm:"foreignKey:UserID" json:"books,omitempty"`
+	Books     []*Book   `gorm:"foreignKey:UserID" json:"books,omitempty"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
