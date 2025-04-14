@@ -44,3 +44,17 @@ type UserUpdate struct {
 	Email    string `json:"email" binding:"omitempty,email"`
 	Password string `json:"password" binding:"omitempty,min=6"`
 }
+
+// UserLogin is the request body for user login
+type UserLogin struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required"`
+}
+
+// LoginResponse is the response body for user login
+type LoginResponse struct {
+	User         *User  `json:"user"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiresAt    int64  `json:"expires_at"`
+}

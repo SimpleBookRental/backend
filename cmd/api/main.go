@@ -39,16 +39,18 @@ func main() {
 	// Initialize services
 	userService := services.NewUserService(userRepo)
 	bookService := services.NewBookService(bookRepo, userRepo)
+	tokenService := services.NewTokenService()
 
 	// Initialize controllers
 	userController := controllers.NewUserController(userService)
 	bookController := controllers.NewBookController(bookService)
+	tokenController := controllers.NewTokenController(tokenService)
 
 	// Initialize router
 	router := gin.Default()
 
 	// Setup routes
-	routes.SetupRoutes(router, userController, bookController)
+	routes.SetupRoutes(router, userController, bookController, tokenController)
 
 	// Start server
 	serverAddr := fmt.Sprintf(":%s", cfg.Server.Port)

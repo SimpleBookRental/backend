@@ -63,7 +63,12 @@ make docker-run
 
 ### User's Books
 
-- `GET /api/v1/users/:user_id/books` - Get all books by user ID
+- `GET /api/v1/user-books/:user_id` - Get all books by user ID
+
+### Authentication
+
+- `POST /api/v1/login` - Login with email and password (returns access token and refresh token)
+- `POST /api/v1/refresh-token` - Refresh access token using refresh token
 
 ## Testing
 

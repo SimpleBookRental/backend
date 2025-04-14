@@ -10,6 +10,7 @@ func SetupRoutes(
 	router *gin.Engine,
 	userController *controllers.UserController,
 	bookController *controllers.BookController,
+	tokenController *controllers.TokenController,
 ) {
 	// API v1 group
 	v1 := router.Group("/api/v1")
@@ -36,5 +37,9 @@ func SetupRoutes(
 
 		// User's books routes
 		v1.GET("/user-books/:user_id", bookController.GetByUserID)
+
+		// Auth routes
+		v1.POST("/login", userController.Login)
+		v1.POST("/refresh-token", tokenController.RefreshToken)
 	}
 }

@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/SimpleBookRental/backend/internal/models"
 	"github.com/SimpleBookRental/backend/internal/repositories"
@@ -30,11 +31,17 @@ func (s *UserService) Create(userCreate *models.UserCreate) (*models.User, error
 		return nil, errors.New("email already exists")
 	}
 
+	// Hash password
+	hashedPassword, err := utils.HashPassword(userCreate.Password)
+	if err != nil {
+		return nil, fmt.Errorf("error hashing password: %w", err)
+	}
+
 	// Create user
 	user := &models.User{
 		Name:     userCreate.Name,
 		Email:    userCreate.Email,
-		Password: userCreate.Password, // In a real application, you would hash the password
+		Password: hashedPassword,
 	}
 
 	err = s.userRepo.Create(user)
@@ -99,7 +106,12 @@ func (s *UserService) Update(id string, userUpdate *models.UserUpdate) (*models.
 		}
 	}
 	if userUpdate.Password != "" {
-		user.Password = userUpdate.Password // In a real application, you would hash the password
+		// Hash password
+		hashedPassword, err := utils.HashPassword(userUpdate.Password)
+		if err != nil {
+			return nil, fmt.Errorf("error hashing password: %w", err)
+		}
+		user.Password = hashedPassword
 	}
 
 	err = s.userRepo.Update(user)
@@ -125,4 +137,37 @@ func (s *UserService) Delete(id string) error {
 	}
 
 	return s.userRepo.Delete(id)
+}
+
+// Login authenticates a user and returns tokens
+func (s *UserService) Login(userLogin *models.UserLogin) (*models.LoginResponse, error) {
+	// Find user by email
+	user, err := s.userRepo.FindByEmail(userLogin.Email)
+	if err != nil {
+		return nil, fmt.Errorf("error finding user: %w", err)
+	}
+	if user == nil {
+		return nil, errors.New("invalid email or password")
+	}
+
+	// Check password
+	if !utils.CheckPasswordHash(userLogin.Password, user.Password) {
+		return nil, errors.New("invalid email or password")
+	}
+
+	// Generate token pair
+	tokenPair, err := utils.GenerateTokenPair(user.ID, user.Email)
+	if err != nil {
+		return nil, fmt.Errorf("error generating tokens: %w", err)
+	}
+
+	// Create login response
+	response := &models.LoginResponse{
+		User:         user,
+		AccessToken:  tokenPair.AccessToken,
+		RefreshToken: tokenPair.RefreshToken,
+		ExpiresAt:    time.Now().Add(time.Hour * 24).Unix(), // 24 hours
+	}
+
+	return response, nil
 }

@@ -89,3 +89,20 @@ func (c *UserController) Delete(ctx *gin.Context) {
 
 	utils.OK(ctx, "User deleted successfully", nil)
 }
+
+// Login handles user login
+func (c *UserController) Login(ctx *gin.Context) {
+	var userLogin models.UserLogin
+	if err := ctx.ShouldBindJSON(&userLogin); err != nil {
+		utils.BadRequest(ctx, "Invalid request body", err.Error())
+		return
+	}
+
+	response, err := c.userService.Login(&userLogin)
+	if err != nil {
+		utils.BadRequest(ctx, "Login failed", err.Error())
+		return
+	}
+
+	utils.OK(ctx, "Login successful", response)
+}
