@@ -1,0 +1,25 @@
+# User Preferences
+
+- The user prefers to communicate in Vietnamese.
+
+# Project Guidelines
+
+- Error messages should be clear and descriptive.
+- Don't forget to use Go 1.24 or higher.
+- Don't forget to handle errors properly.
+- Don't forget to write tests for your code with 100% test coverage.
+- Don't forget to document your code in English.
+- Don't forget to read config from .env file.
+- Don't make README out of date.
+- Don't make Makefile out of date.
+- Don't make Dockerfile and Docker Compose are out of date.
+
+# Project Structure
+
+- Must follows clean architecture.
+- Must follows SOLID principles.
+
+# Project library
+
+- Use GORM for ORM.
+- Use Gin for HTTP web framework.
