@@ -1,5 +1,7 @@
 # Simple Book Rental API
 
+[![Go Build and Test](https://github.com/SimpleBookRental/backend/actions/workflows/go.yml/badge.svg)](https://github.com/SimpleBookRental/backend/actions/workflows/go.yml)
+
 A RESTful API for a simple book rental system built with Go, Gin, and GORM.
 
 ## Features
@@ -96,10 +98,18 @@ make test
 make test-coverage
 ```
 
+## CI/CD
+
+This project uses GitHub Actions for continuous integration:
+
+- **Build and Test**: Builds the application and runs tests on every push and pull request
+
 ## Project Structure
 
 ```
 .
+├── .github
+│   └── workflows            # GitHub Actions workflows
 ├── cmd
 │   └── api
 │       └── main.go           # Application entry point

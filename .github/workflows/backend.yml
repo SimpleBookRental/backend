@@ -1,0 +1,71 @@
+name: Go Build and Test
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: book_rental_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.24'
+        
+    - name: Check out code
+      uses: actions/checkout@v4
+      
+    - name: Install dependencies
+      run: go mod download
+      
+    - name: Build
+      run: go build -v ./...
+      
+    - name: Test
+      run: go test -v ./...
+      env:
+        DB_HOST: localhost
+        DB_PORT: 5432
+        DB_USER: postgres
+        DB_PASSWORD: postgres
+        DB_NAME: book_rental_test
+        JWT_ACCESS_SECRET: test_access_secret
+        JWT_REFRESH_SECRET: test_refresh_secret
+        JWT_ACCESS_EXPIRATION: 15m
+        JWT_REFRESH_EXPIRATION: 24h
+        
+    - name: Test with coverage
+      run: go test -v -coverprofile=coverage.out ./...
+      env:
+        DB_HOST: localhost
+        DB_PORT: 5432
+        DB_USER: postgres
+        DB_PASSWORD: postgres
+        DB_NAME: book_rental_test
+        JWT_ACCESS_SECRET: test_access_secret
+        JWT_REFRESH_SECRET: test_refresh_secret
+        JWT_ACCESS_EXPIRATION: 15m
+        JWT_REFRESH_EXPIRATION: 24h
+        
+    - name: Display coverage summary
+      run: go tool cover -func=coverage.out
