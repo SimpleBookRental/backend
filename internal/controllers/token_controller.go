@@ -33,3 +33,20 @@ func (c *TokenController) RefreshToken(ctx *gin.Context) {
 
 	utils.OK(ctx, "Token refreshed successfully", response)
 }
+
+// Logout handles user logout
+func (c *TokenController) Logout(ctx *gin.Context) {
+	var request models.LogoutRequest
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		utils.BadRequest(ctx, "Invalid request body", err.Error())
+		return
+	}
+
+	err := c.tokenService.Logout(&request)
+	if err != nil {
+		utils.BadRequest(ctx, "Failed to logout", err.Error())
+		return
+	}
+
+	utils.OK(ctx, "Logged out successfully", nil)
+}

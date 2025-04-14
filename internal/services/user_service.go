@@ -140,7 +140,7 @@ func (s *UserService) Delete(id string) error {
 }
 
 // Login authenticates a user and returns tokens
-func (s *UserService) Login(userLogin *models.UserLogin) (*models.LoginResponse, error) {
+func (s *UserService) Login(userLogin *models.UserLogin, tokenRepo *repositories.TokenRepository) (*models.LoginResponse, error) {
 	// Find user by email
 	user, err := s.userRepo.FindByEmail(userLogin.Email)
 	if err != nil {
@@ -161,12 +161,40 @@ func (s *UserService) Login(userLogin *models.UserLogin) (*models.LoginResponse,
 		return nil, fmt.Errorf("error generating tokens: %w", err)
 	}
 
+	// Save tokens in database
+	accessExpiration := time.Now().Add(time.Hour * 24)       // 24 hours
+	refreshExpiration := time.Now().Add(time.Hour * 24 * 30) // 30 days
+
+	// Save access token
+	accessToken := &models.IssuedToken{
+		UserID:    user.ID,
+		Token:     tokenPair.AccessToken,
+		TokenType: string(models.AccessToken),
+		ExpiresAt: accessExpiration,
+	}
+	err = tokenRepo.CreateToken(accessToken)
+	if err != nil {
+		return nil, fmt.Errorf("error saving access token: %w", err)
+	}
+
+	// Save refresh token
+	refreshToken := &models.IssuedToken{
+		UserID:    user.ID,
+		Token:     tokenPair.RefreshToken,
+		TokenType: string(models.RefreshToken),
+		ExpiresAt: refreshExpiration,
+	}
+	err = tokenRepo.CreateToken(refreshToken)
+	if err != nil {
+		return nil, fmt.Errorf("error saving refresh token: %w", err)
+	}
+
 	// Create login response
 	response := &models.LoginResponse{
 		User:         user,
 		AccessToken:  tokenPair.AccessToken,
 		RefreshToken: tokenPair.RefreshToken,
-		ExpiresAt:    time.Now().Add(time.Hour * 24).Unix(), // 24 hours
+		ExpiresAt:    accessExpiration.Unix(),
 	}
 
 	return response, nil

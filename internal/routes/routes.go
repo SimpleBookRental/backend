@@ -5,6 +5,7 @@ import (
 
 	"github.com/SimpleBookRental/backend/internal/controllers"
 	"github.com/SimpleBookRental/backend/internal/middleware"
+	"github.com/SimpleBookRental/backend/internal/repositories"
 )
 
 // SetupRoutes sets up all the routes for the application
@@ -13,6 +14,7 @@ func SetupRoutes(
 	userController *controllers.UserController,
 	bookController *controllers.BookController,
 	tokenController *controllers.TokenController,
+	tokenRepo *repositories.TokenRepository,
 ) {
 	// API v1 group
 	v1 := router.Group("/api/v1")
@@ -24,11 +26,12 @@ func SetupRoutes(
 		// Auth routes
 		v1.POST("/login", userController.Login)
 		v1.POST("/refresh-token", tokenController.RefreshToken)
+		v1.POST("/logout", tokenController.Logout)
 
 		// Protected routes (authentication required)
 		// Apply auth middleware to all protected routes
 		auth := v1.Group("/")
-		auth.Use(middleware.AuthMiddleware())
+		auth.Use(middleware.AuthMiddleware(tokenRepo))
 		{
 			// User routes
 			users := auth.Group("users")

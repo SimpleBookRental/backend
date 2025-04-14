@@ -69,6 +69,7 @@ make docker-run
 
 - `POST /api/v1/login` - Login with email and password (returns access token and refresh token)
 - `POST /api/v1/refresh-token` - Refresh access token using refresh token
+- `POST /api/v1/logout` - Logout and revoke refresh token
 
 ### Authentication Middleware
 
@@ -77,6 +78,7 @@ All API endpoints except the following require a valid JWT token in the Authoriz
 - `POST /api/v1/users` - Create a new user
 - `POST /api/v1/login` - Login
 - `POST /api/v1/refresh-token` - Refresh token
+- `POST /api/v1/logout` - Logout
 
 To access protected endpoints, include the JWT token in the Authorization header:
 

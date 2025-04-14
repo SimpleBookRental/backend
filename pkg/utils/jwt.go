@@ -116,7 +116,7 @@ func generateToken(userID, email string, secret []byte, expiration time.Duration
 // ValidateToken validates a JWT token
 func ValidateToken(tokenString string, secret []byte) (*Claims, error) {
 	// Parse token
-	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (any, error) {
 		// Validate signing method
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])

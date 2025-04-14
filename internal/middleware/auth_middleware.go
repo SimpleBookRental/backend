@@ -2,13 +2,17 @@ package middleware
 
 import (
 	"strings"
+	"time"
 
-	"github.com/SimpleBookRental/backend/pkg/utils"
 	"github.com/gin-gonic/gin"
+
+	"github.com/SimpleBookRental/backend/internal/models"
+	"github.com/SimpleBookRental/backend/internal/repositories"
+	"github.com/SimpleBookRental/backend/pkg/utils"
 )
 
 // AuthMiddleware validates JWT tokens
-func AuthMiddleware() gin.HandlerFunc {
+func AuthMiddleware(tokenRepo *repositories.TokenRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Get authorization header
 		authHeader := c.GetHeader("Authorization")
@@ -34,6 +38,57 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		// Get token
 		tokenString := parts[1]
+
+		// Check if token exists and is valid
+		issuedToken, err := tokenRepo.FindTokenByValue(tokenString)
+		if err != nil {
+			c.AbortWithStatusJSON(401, gin.H{
+				"success": false,
+				"message": "Error validating token",
+				"data":    nil,
+			})
+			return
+		}
+
+		// Check if token exists
+		if issuedToken == nil {
+			c.AbortWithStatusJSON(401, gin.H{
+				"success": false,
+				"message": "Invalid token",
+				"data":    nil,
+			})
+			return
+		}
+
+		// Check if token is revoked
+		if issuedToken.IsRevoked {
+			c.AbortWithStatusJSON(401, gin.H{
+				"success": false,
+				"message": "Token has been revoked",
+				"data":    nil,
+			})
+			return
+		}
+
+		// Check if token is expired
+		if issuedToken.ExpiresAt.Before(time.Now()) {
+			c.AbortWithStatusJSON(401, gin.H{
+				"success": false,
+				"message": "Token has expired",
+				"data":    nil,
+			})
+			return
+		}
+
+		// Check if token is an access token
+		if issuedToken.TokenType != string(models.AccessToken) {
+			c.AbortWithStatusJSON(401, gin.H{
+				"success": false,
+				"message": "Invalid token type",
+				"data":    nil,
+			})
+			return
+		}
 
 		// Validate token
 		claims, err := utils.ValidateToken(tokenString, utils.GetAccessSecret())

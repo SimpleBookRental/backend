@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"github.com/SimpleBookRental/backend/internal/models"
+	"github.com/SimpleBookRental/backend/internal/repositories"
 	"github.com/SimpleBookRental/backend/internal/services"
 	"github.com/SimpleBookRental/backend/pkg/utils"
 	"github.com/gin-gonic/gin"
@@ -10,11 +11,12 @@ import (
 // UserController handles HTTP requests for users
 type UserController struct {
 	userService *services.UserService
+	tokenRepo   *repositories.TokenRepository
 }
 
 // NewUserController creates a new user controller
-func NewUserController(userService *services.UserService) *UserController {
-	return &UserController{userService: userService}
+func NewUserController(userService *services.UserService, tokenRepo *repositories.TokenRepository) *UserController {
+	return &UserController{userService: userService, tokenRepo: tokenRepo}
 }
 
 // Create handles the creation of a new user
@@ -98,7 +100,7 @@ func (c *UserController) Login(ctx *gin.Context) {
 		return
 	}
 
-	response, err := c.userService.Login(&userLogin)
+	response, err := c.userService.Login(&userLogin, c.tokenRepo)
 	if err != nil {
 		utils.BadRequest(ctx, "Login failed", err.Error())
 		return
