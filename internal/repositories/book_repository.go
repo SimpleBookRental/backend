@@ -12,6 +12,9 @@ type BookRepository struct {
 	db *gorm.DB
 }
 
+// Ensure BookRepository implements BookRepositoryInterface
+var _ BookRepositoryInterface = (*BookRepository)(nil)
+
 // NewBookRepository creates a new book repository
 func NewBookRepository(db *gorm.DB) *BookRepository {
 	return &BookRepository{db: db}

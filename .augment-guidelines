@@ -7,7 +7,7 @@
 - Error messages should be clear and descriptive.
 - Don't forget to use Go 1.24 or higher.
 - Don't forget to handle errors properly.
-- Don't forget to write tests for your code with 100% test coverage.
+- Don't forget to write unit tests for your code with above 80% test coverage.
 - Don't forget to document your code in English.
 - Don't forget to read config from .env file.
 - Don't make README out of date.

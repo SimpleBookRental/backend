@@ -12,11 +12,14 @@ import (
 
 // UserService handles business logic for users
 type UserService struct {
-	userRepo *repositories.UserRepository
+	userRepo repositories.UserRepositoryInterface
 }
 
+// Ensure UserService implements UserServiceInterface
+var _ UserServiceInterface = (*UserService)(nil)
+
 // NewUserService creates a new user service
-func NewUserService(userRepo *repositories.UserRepository) *UserService {
+func NewUserService(userRepo repositories.UserRepositoryInterface) *UserService {
 	return &UserService{userRepo: userRepo}
 }
 
@@ -140,7 +143,7 @@ func (s *UserService) Delete(id string) error {
 }
 
 // Login authenticates a user and returns tokens
-func (s *UserService) Login(userLogin *models.UserLogin, tokenRepo *repositories.TokenRepository) (*models.LoginResponse, error) {
+func (s *UserService) Login(userLogin *models.UserLogin, tokenRepo repositories.TokenRepositoryInterface) (*models.LoginResponse, error) {
 	// Find user by email
 	user, err := s.userRepo.FindByEmail(userLogin.Email)
 	if err != nil {

@@ -11,12 +11,15 @@ import (
 
 // TokenService handles business logic for tokens
 type TokenService struct {
-	tokenRepo *repositories.TokenRepository
-	userRepo  *repositories.UserRepository
+	tokenRepo repositories.TokenRepositoryInterface
+	userRepo  repositories.UserRepositoryInterface
 }
 
+// Ensure TokenService implements TokenServiceInterface
+var _ TokenServiceInterface = (*TokenService)(nil)
+
 // NewTokenService creates a new token service
-func NewTokenService(tokenRepo *repositories.TokenRepository, userRepo *repositories.UserRepository) *TokenService {
+func NewTokenService(tokenRepo repositories.TokenRepositoryInterface, userRepo repositories.UserRepositoryInterface) *TokenService {
 	return &TokenService{tokenRepo: tokenRepo, userRepo: userRepo}
 }
 

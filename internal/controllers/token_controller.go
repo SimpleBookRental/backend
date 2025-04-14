@@ -9,11 +9,11 @@ import (
 
 // TokenController handles HTTP requests for tokens
 type TokenController struct {
-	tokenService *services.TokenService
+	tokenService services.TokenServiceInterface
 }
 
 // NewTokenController creates a new token controller
-func NewTokenController(tokenService *services.TokenService) *TokenController {
+func NewTokenController(tokenService services.TokenServiceInterface) *TokenController {
 	return &TokenController{tokenService: tokenService}
 }
 

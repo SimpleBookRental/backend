@@ -12,6 +12,9 @@ type UserRepository struct {
 	db *gorm.DB
 }
 
+// Ensure UserRepository implements UserRepositoryInterface
+var _ UserRepositoryInterface = (*UserRepository)(nil)
+
 // NewUserRepository creates a new user repository
 func NewUserRepository(db *gorm.DB) *UserRepository {
 	return &UserRepository{db: db}

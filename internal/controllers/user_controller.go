@@ -10,12 +10,12 @@ import (
 
 // UserController handles HTTP requests for users
 type UserController struct {
-	userService *services.UserService
-	tokenRepo   *repositories.TokenRepository
+	userService services.UserServiceInterface
+	tokenRepo   repositories.TokenRepositoryInterface
 }
 
 // NewUserController creates a new user controller
-func NewUserController(userService *services.UserService, tokenRepo *repositories.TokenRepository) *UserController {
+func NewUserController(userService services.UserServiceInterface, tokenRepo repositories.TokenRepositoryInterface) *UserController {
 	return &UserController{userService: userService, tokenRepo: tokenRepo}
 }
 

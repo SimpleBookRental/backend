@@ -9,11 +9,11 @@ import (
 
 // BookController handles HTTP requests for books
 type BookController struct {
-	bookService *services.BookService
+	bookService services.BookServiceInterface
 }
 
 // NewBookController creates a new book controller
-func NewBookController(bookService *services.BookService) *BookController {
+func NewBookController(bookService services.BookServiceInterface) *BookController {
 	return &BookController{bookService: bookService}
 }
 

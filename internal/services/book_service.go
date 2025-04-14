@@ -11,12 +11,15 @@ import (
 
 // BookService handles business logic for books
 type BookService struct {
-	bookRepo *repositories.BookRepository
-	userRepo *repositories.UserRepository
+	bookRepo repositories.BookRepositoryInterface
+	userRepo repositories.UserRepositoryInterface
 }
 
+// Ensure BookService implements BookServiceInterface
+var _ BookServiceInterface = (*BookService)(nil)
+
 // NewBookService creates a new book service
-func NewBookService(bookRepo *repositories.BookRepository, userRepo *repositories.UserRepository) *BookService {
+func NewBookService(bookRepo repositories.BookRepositoryInterface, userRepo repositories.UserRepositoryInterface) *BookService {
 	return &BookService{
 		bookRepo: bookRepo,
 		userRepo: userRepo,

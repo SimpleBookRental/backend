@@ -12,6 +12,9 @@ type TokenRepository struct {
 	db *gorm.DB
 }
 
+// Ensure TokenRepository implements TokenRepositoryInterface
+var _ TokenRepositoryInterface = (*TokenRepository)(nil)
+
 // NewTokenRepository creates a new token repository
 func NewTokenRepository(db *gorm.DB) *TokenRepository {
 	return &TokenRepository{db: db}
@@ -56,9 +59,9 @@ func (r *TokenRepository) RevokeAllUserTokens(userID string) error {
 	return r.db.Model(&models.IssuedToken{}).
 		Where("user_id = ? AND is_revoked = ? AND expires_at > ?", userID, false, time.Now()).
 		Updates(map[string]interface{}{
-			"is_revoked":  true,
-			"revoked_at":  now,
-			"updated_at":  now,
+			"is_revoked": true,
+			"revoked_at": now,
+			"updated_at": now,
 		}).Error
 }
 
