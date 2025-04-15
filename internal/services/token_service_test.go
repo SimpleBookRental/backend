@@ -5,15 +5,19 @@ import (
 	"testing"
 	"time"
 
+	"github.com/SimpleBookRental/backend/internal/mocks"
 	"github.com/SimpleBookRental/backend/internal/models"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
+	"go.uber.org/mock/gomock"
 )
 
 func TestTokenService_RefreshToken(t *testing.T) {
 	// Setup
-	mockTokenRepo := new(MockTokenRepository)
-	mockUserRepo := new(MockUserRepository)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
 	service := NewTokenService(mockTokenRepo, mockUserRepo)
 
 	refreshToken := "refresh-token"
@@ -36,10 +40,10 @@ func TestTokenService_RefreshToken(t *testing.T) {
 	}
 
 	// Expectations
-	mockTokenRepo.On("FindTokenByValue", refreshToken).Return(issuedToken, nil)
-	mockUserRepo.On("FindByID", user.ID).Return(user, nil)
-	mockTokenRepo.On("CreateToken", mock.AnythingOfType("*models.IssuedToken")).Return(nil).Times(2)
-	mockTokenRepo.On("RevokeToken", issuedToken).Return(nil)
+	mockTokenRepo.EXPECT().FindTokenByValue(refreshToken).Return(issuedToken, nil)
+	mockUserRepo.EXPECT().FindByID(user.ID).Return(user, nil)
+	mockTokenRepo.EXPECT().CreateToken(gomock.AssignableToTypeOf(&models.IssuedToken{})).Return(nil).Times(2)
+	mockTokenRepo.EXPECT().RevokeToken(issuedToken).Return(nil)
 
 	// Test
 	response, err := service.RefreshToken(request)
@@ -49,15 +53,16 @@ func TestTokenService_RefreshToken(t *testing.T) {
 	assert.NotEmpty(t, response.RefreshToken)
 	assert.NotZero(t, response.ExpiresAt)
 
-	// Verify expectations
-	mockTokenRepo.AssertExpectations(t)
-	mockUserRepo.AssertExpectations(t)
+	// Verify expectations handled by gomock controller
 }
 
 func TestTokenService_RefreshToken_TokenNotFound(t *testing.T) {
 	// Setup
-	mockTokenRepo := new(MockTokenRepository)
-	mockUserRepo := new(MockUserRepository)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
 	service := NewTokenService(mockTokenRepo, mockUserRepo)
 
 	refreshToken := "refresh-token"
@@ -66,7 +71,7 @@ func TestTokenService_RefreshToken_TokenNotFound(t *testing.T) {
 	}
 
 	// Expectations
-	mockTokenRepo.On("FindTokenByValue", refreshToken).Return(nil, nil)
+	mockTokenRepo.EXPECT().FindTokenByValue(refreshToken).Return(nil, nil)
 
 	// Test
 	response, err := service.RefreshToken(request)
@@ -74,15 +79,16 @@ func TestTokenService_RefreshToken_TokenNotFound(t *testing.T) {
 	assert.Nil(t, response)
 	assert.Contains(t, err.Error(), "token not found")
 
-	// Verify expectations
-	mockTokenRepo.AssertExpectations(t)
-	mockUserRepo.AssertExpectations(t)
+	// Verify expectations handled by gomock controller
 }
 
 func TestTokenService_RefreshToken_TokenRevoked(t *testing.T) {
 	// Setup
-	mockTokenRepo := new(MockTokenRepository)
-	mockUserRepo := new(MockUserRepository)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
 	service := NewTokenService(mockTokenRepo, mockUserRepo)
 
 	refreshToken := "refresh-token"
@@ -100,7 +106,7 @@ func TestTokenService_RefreshToken_TokenRevoked(t *testing.T) {
 	}
 
 	// Expectations
-	mockTokenRepo.On("FindTokenByValue", refreshToken).Return(issuedToken, nil)
+	mockTokenRepo.EXPECT().FindTokenByValue(refreshToken).Return(issuedToken, nil)
 
 	// Test
 	response, err := service.RefreshToken(request)
@@ -108,15 +114,16 @@ func TestTokenService_RefreshToken_TokenRevoked(t *testing.T) {
 	assert.Nil(t, response)
 	assert.Contains(t, err.Error(), "token has been revoked")
 
-	// Verify expectations
-	mockTokenRepo.AssertExpectations(t)
-	mockUserRepo.AssertExpectations(t)
+	// Verify expectations handled by gomock controller
 }
 
 func TestTokenService_RefreshToken_TokenExpired(t *testing.T) {
 	// Setup
-	mockTokenRepo := new(MockTokenRepository)
-	mockUserRepo := new(MockUserRepository)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
 	service := NewTokenService(mockTokenRepo, mockUserRepo)
 
 	refreshToken := "refresh-token"
@@ -134,7 +141,7 @@ func TestTokenService_RefreshToken_TokenExpired(t *testing.T) {
 	}
 
 	// Expectations
-	mockTokenRepo.On("FindTokenByValue", refreshToken).Return(issuedToken, nil)
+	mockTokenRepo.EXPECT().FindTokenByValue(refreshToken).Return(issuedToken, nil)
 
 	// Test
 	response, err := service.RefreshToken(request)
@@ -142,15 +149,16 @@ func TestTokenService_RefreshToken_TokenExpired(t *testing.T) {
 	assert.Nil(t, response)
 	assert.Contains(t, err.Error(), "token has expired")
 
-	// Verify expectations
-	mockTokenRepo.AssertExpectations(t)
-	mockUserRepo.AssertExpectations(t)
+	// Verify expectations handled by gomock controller
 }
 
 func TestTokenService_RefreshToken_InvalidTokenType(t *testing.T) {
 	// Setup
-	mockTokenRepo := new(MockTokenRepository)
-	mockUserRepo := new(MockUserRepository)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
 	service := NewTokenService(mockTokenRepo, mockUserRepo)
 
 	refreshToken := "refresh-token"
@@ -168,7 +176,7 @@ func TestTokenService_RefreshToken_InvalidTokenType(t *testing.T) {
 	}
 
 	// Expectations
-	mockTokenRepo.On("FindTokenByValue", refreshToken).Return(issuedToken, nil)
+	mockTokenRepo.EXPECT().FindTokenByValue(refreshToken).Return(issuedToken, nil)
 
 	// Test
 	response, err := service.RefreshToken(request)
@@ -176,15 +184,16 @@ func TestTokenService_RefreshToken_InvalidTokenType(t *testing.T) {
 	assert.Nil(t, response)
 	assert.Contains(t, err.Error(), "invalid token type")
 
-	// Verify expectations
-	mockTokenRepo.AssertExpectations(t)
-	mockUserRepo.AssertExpectations(t)
+	// Verify expectations handled by gomock controller
 }
 
 func TestTokenService_RefreshToken_UserNotFound(t *testing.T) {
 	// Setup
-	mockTokenRepo := new(MockTokenRepository)
-	mockUserRepo := new(MockUserRepository)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
 	service := NewTokenService(mockTokenRepo, mockUserRepo)
 
 	refreshToken := "refresh-token"
@@ -202,8 +211,8 @@ func TestTokenService_RefreshToken_UserNotFound(t *testing.T) {
 	}
 
 	// Expectations
-	mockTokenRepo.On("FindTokenByValue", refreshToken).Return(issuedToken, nil)
-	mockUserRepo.On("FindByID", issuedToken.UserID).Return(nil, nil)
+	mockTokenRepo.EXPECT().FindTokenByValue(refreshToken).Return(issuedToken, nil)
+	mockUserRepo.EXPECT().FindByID(issuedToken.UserID).Return(nil, nil)
 
 	// Test
 	response, err := service.RefreshToken(request)
@@ -211,15 +220,16 @@ func TestTokenService_RefreshToken_UserNotFound(t *testing.T) {
 	assert.Nil(t, response)
 	assert.Contains(t, err.Error(), "user not found")
 
-	// Verify expectations
-	mockTokenRepo.AssertExpectations(t)
-	mockUserRepo.AssertExpectations(t)
+	// Verify expectations handled by gomock controller
 }
 
 func TestTokenService_Logout(t *testing.T) {
 	// Setup
-	mockTokenRepo := new(MockTokenRepository)
-	mockUserRepo := new(MockUserRepository)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
 	service := NewTokenService(mockTokenRepo, mockUserRepo)
 
 	refreshToken := "refresh-token"
@@ -237,23 +247,24 @@ func TestTokenService_Logout(t *testing.T) {
 	}
 
 	// Expectations
-	mockTokenRepo.On("FindTokenByValue", refreshToken).Return(issuedToken, nil)
-	mockTokenRepo.On("RevokeAllUserTokens", issuedToken.UserID).Return(nil)
-	mockTokenRepo.On("CleanupExpiredTokens").Return(nil)
+	mockTokenRepo.EXPECT().FindTokenByValue(refreshToken).Return(issuedToken, nil)
+	mockTokenRepo.EXPECT().RevokeAllUserTokens(issuedToken.UserID).Return(nil)
+	mockTokenRepo.EXPECT().CleanupExpiredTokens().Return(nil)
 
 	// Test
 	err := service.Logout(request)
 	assert.NoError(t, err)
 
-	// Verify expectations
-	mockTokenRepo.AssertExpectations(t)
-	mockUserRepo.AssertExpectations(t)
+	// Verify expectations handled by gomock controller
 }
 
 func TestTokenService_Logout_TokenNotFound(t *testing.T) {
 	// Setup
-	mockTokenRepo := new(MockTokenRepository)
-	mockUserRepo := new(MockUserRepository)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
 	service := NewTokenService(mockTokenRepo, mockUserRepo)
 
 	refreshToken := "refresh-token"
@@ -262,21 +273,22 @@ func TestTokenService_Logout_TokenNotFound(t *testing.T) {
 	}
 
 	// Expectations
-	mockTokenRepo.On("FindTokenByValue", refreshToken).Return(nil, nil)
+	mockTokenRepo.EXPECT().FindTokenByValue(refreshToken).Return(nil, nil)
 
 	// Test
 	err := service.Logout(request)
 	assert.NoError(t, err) // Should not error if token not found
-	
-	// Verify expectations
-	mockTokenRepo.AssertExpectations(t)
-	mockUserRepo.AssertExpectations(t)
+
+	// Verify expectations handled by gomock controller
 }
 
 func TestTokenService_Logout_InvalidTokenType(t *testing.T) {
 	// Setup
-	mockTokenRepo := new(MockTokenRepository)
-	mockUserRepo := new(MockUserRepository)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
 	service := NewTokenService(mockTokenRepo, mockUserRepo)
 
 	refreshToken := "refresh-token"
@@ -294,22 +306,23 @@ func TestTokenService_Logout_InvalidTokenType(t *testing.T) {
 	}
 
 	// Expectations
-	mockTokenRepo.On("FindTokenByValue", refreshToken).Return(issuedToken, nil)
+	mockTokenRepo.EXPECT().FindTokenByValue(refreshToken).Return(issuedToken, nil)
 
 	// Test
 	err := service.Logout(request)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid token type")
 
-	// Verify expectations
-	mockTokenRepo.AssertExpectations(t)
-	mockUserRepo.AssertExpectations(t)
+	// Verify expectations handled by gomock controller
 }
 
 func TestTokenService_Logout_RevokeError(t *testing.T) {
 	// Setup
-	mockTokenRepo := new(MockTokenRepository)
-	mockUserRepo := new(MockUserRepository)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
 	service := NewTokenService(mockTokenRepo, mockUserRepo)
 
 	refreshToken := "refresh-token"
@@ -327,15 +340,13 @@ func TestTokenService_Logout_RevokeError(t *testing.T) {
 	}
 
 	// Expectations
-	mockTokenRepo.On("FindTokenByValue", refreshToken).Return(issuedToken, nil)
-	mockTokenRepo.On("RevokeAllUserTokens", issuedToken.UserID).Return(errors.New("revoke error"))
+	mockTokenRepo.EXPECT().FindTokenByValue(refreshToken).Return(issuedToken, nil)
+	mockTokenRepo.EXPECT().RevokeAllUserTokens(issuedToken.UserID).Return(errors.New("revoke error"))
 
 	// Test
 	err := service.Logout(request)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "error revoking user tokens")
 
-	// Verify expectations
-	mockTokenRepo.AssertExpectations(t)
-	mockUserRepo.AssertExpectations(t)
+	// Verify expectations handled by gomock controller
 }

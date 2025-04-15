@@ -4,15 +4,19 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/SimpleBookRental/backend/internal/mocks"
 	"github.com/SimpleBookRental/backend/internal/models"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
+	"go.uber.org/mock/gomock"
 )
 
 func TestBookService_Create(t *testing.T) {
 	// Setup
-	mockBookRepo := new(MockBookRepository)
-	mockUserRepo := new(MockUserRepository)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
 	service := NewBookService(mockBookRepo, mockUserRepo)
 
 	bookCreate := &models.BookCreate{
@@ -28,9 +32,9 @@ func TestBookService_Create(t *testing.T) {
 	}
 
 	// Expectations
-	mockUserRepo.On("FindByID", bookCreate.UserID).Return(user, nil)
-	mockBookRepo.On("FindByISBN", bookCreate.ISBN).Return(nil, nil)
-	mockBookRepo.On("Create", mock.AnythingOfType("*models.Book")).Return(nil)
+	mockUserRepo.EXPECT().FindByID(bookCreate.UserID).Return(user, nil)
+	mockBookRepo.EXPECT().FindByISBN(bookCreate.ISBN).Return(nil, nil)
+	mockBookRepo.EXPECT().Create(gomock.AssignableToTypeOf(&models.Book{})).Return(nil)
 
 	// Test
 	book, err := service.Create(bookCreate)
@@ -42,15 +46,16 @@ func TestBookService_Create(t *testing.T) {
 	assert.Equal(t, bookCreate.Description, book.Description)
 	assert.Equal(t, bookCreate.UserID, book.UserID)
 
-	// Verify expectations
-	mockBookRepo.AssertExpectations(t)
-	mockUserRepo.AssertExpectations(t)
+	// Verify expectations handled by gomock controller
 }
 
 func TestBookService_Create_InvalidUserID(t *testing.T) {
 	// Setup
-	mockBookRepo := new(MockBookRepository)
-	mockUserRepo := new(MockUserRepository)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
 	service := NewBookService(mockBookRepo, mockUserRepo)
 
 	bookCreate := &models.BookCreate{
@@ -62,7 +67,7 @@ func TestBookService_Create_InvalidUserID(t *testing.T) {
 	}
 
 	// Expectations
-	mockUserRepo.On("FindByID", bookCreate.UserID).Return(nil, errors.New("invalid user ID"))
+	mockUserRepo.EXPECT().FindByID(bookCreate.UserID).Return(nil, errors.New("invalid user ID"))
 
 	// Test
 	book, err := service.Create(bookCreate)
@@ -70,15 +75,16 @@ func TestBookService_Create_InvalidUserID(t *testing.T) {
 	assert.Nil(t, book)
 	assert.Contains(t, err.Error(), "invalid user ID")
 
-	// Verify expectations
-	mockBookRepo.AssertExpectations(t)
-	mockUserRepo.AssertExpectations(t)
+	// Verify expectations handled by gomock controller
 }
 
 func TestBookService_Create_UserNotFound(t *testing.T) {
 	// Setup
-	mockBookRepo := new(MockBookRepository)
-	mockUserRepo := new(MockUserRepository)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
 	service := NewBookService(mockBookRepo, mockUserRepo)
 
 	bookCreate := &models.BookCreate{
@@ -90,7 +96,7 @@ func TestBookService_Create_UserNotFound(t *testing.T) {
 	}
 
 	// Expectations
-	mockUserRepo.On("FindByID", bookCreate.UserID).Return(nil, nil)
+	mockUserRepo.EXPECT().FindByID(bookCreate.UserID).Return(nil, nil)
 
 	// Test
 	book, err := service.Create(bookCreate)
@@ -98,15 +104,16 @@ func TestBookService_Create_UserNotFound(t *testing.T) {
 	assert.Nil(t, book)
 	assert.Contains(t, err.Error(), "user not found")
 
-	// Verify expectations
-	mockBookRepo.AssertExpectations(t)
-	mockUserRepo.AssertExpectations(t)
+	// Verify expectations handled by gomock controller
 }
 
 func TestBookService_GetByID(t *testing.T) {
 	// Setup
-	mockBookRepo := new(MockBookRepository)
-	mockUserRepo := new(MockUserRepository)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
 	service := NewBookService(mockBookRepo, mockUserRepo)
 
 	book := &models.Book{
@@ -119,21 +126,23 @@ func TestBookService_GetByID(t *testing.T) {
 	}
 
 	// Expectations
-	mockBookRepo.On("FindByID", book.ID).Return(book, nil)
+	mockBookRepo.EXPECT().FindByID(book.ID).Return(book, nil)
 
 	// Test
 	result, err := service.GetByID(book.ID)
 	assert.NoError(t, err)
 	assert.Equal(t, book, result)
 
-	// Verify expectations
-	mockBookRepo.AssertExpectations(t)
+	// Verify expectations handled by gomock controller
 }
 
 func TestBookService_GetByID_InvalidID(t *testing.T) {
 	// Setup
-	mockBookRepo := new(MockBookRepository)
-	mockUserRepo := new(MockUserRepository)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
 	service := NewBookService(mockBookRepo, mockUserRepo)
 
 	// Test
@@ -142,20 +151,22 @@ func TestBookService_GetByID_InvalidID(t *testing.T) {
 	assert.Nil(t, result)
 	assert.Contains(t, err.Error(), "invalid book ID")
 
-	// Verify expectations
-	mockBookRepo.AssertExpectations(t)
+	// Verify expectations handled by gomock controller
 }
 
 func TestBookService_GetByID_BookNotFound(t *testing.T) {
 	// Setup
-	mockBookRepo := new(MockBookRepository)
-	mockUserRepo := new(MockUserRepository)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
 	service := NewBookService(mockBookRepo, mockUserRepo)
 
 	bookID := "123e4567-e89b-12d3-a456-426614174000"
 
 	// Expectations
-	mockBookRepo.On("FindByID", bookID).Return(nil, nil)
+	mockBookRepo.EXPECT().FindByID(bookID).Return(nil, nil)
 
 	// Test
 	result, err := service.GetByID(bookID)
@@ -163,14 +174,16 @@ func TestBookService_GetByID_BookNotFound(t *testing.T) {
 	assert.Nil(t, result)
 	assert.Contains(t, err.Error(), "book not found")
 
-	// Verify expectations
-	mockBookRepo.AssertExpectations(t)
+	// Verify expectations handled by gomock controller
 }
 
 func TestBookService_GetAll(t *testing.T) {
 	// Setup
-	mockBookRepo := new(MockBookRepository)
-	mockUserRepo := new(MockUserRepository)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
 	service := NewBookService(mockBookRepo, mockUserRepo)
 
 	books := []models.Book{
@@ -187,21 +200,23 @@ func TestBookService_GetAll(t *testing.T) {
 	}
 
 	// Expectations
-	mockBookRepo.On("FindAll").Return(books, nil)
+	mockBookRepo.EXPECT().FindAll().Return(books, nil)
 
 	// Test
 	results, err := service.GetAll()
 	assert.NoError(t, err)
 	assert.Equal(t, books, results)
 
-	// Verify expectations
-	mockBookRepo.AssertExpectations(t)
+	// Verify expectations handled by gomock controller
 }
 
 func TestBookService_GetByUserID(t *testing.T) {
 	// Setup
-	mockBookRepo := new(MockBookRepository)
-	mockUserRepo := new(MockUserRepository)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
 	service := NewBookService(mockBookRepo, mockUserRepo)
 
 	userID := "123e4567-e89b-12d3-a456-426614174001"
@@ -222,23 +237,24 @@ func TestBookService_GetByUserID(t *testing.T) {
 	}
 
 	// Expectations
-	mockUserRepo.On("FindByID", userID).Return(user, nil)
-	mockBookRepo.On("FindByUserID", userID).Return(books, nil)
+	mockUserRepo.EXPECT().FindByID(userID).Return(user, nil)
+	mockBookRepo.EXPECT().FindByUserID(userID).Return(books, nil)
 
 	// Test
 	results, err := service.GetByUserID(userID)
 	assert.NoError(t, err)
 	assert.Equal(t, books, results)
 
-	// Verify expectations
-	mockBookRepo.AssertExpectations(t)
-	mockUserRepo.AssertExpectations(t)
+	// Verify expectations handled by gomock controller
 }
 
 func TestBookService_GetByUserID_InvalidUserID(t *testing.T) {
 	// Setup
-	mockBookRepo := new(MockBookRepository)
-	mockUserRepo := new(MockUserRepository)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
 	service := NewBookService(mockBookRepo, mockUserRepo)
 
 	// Test
@@ -247,21 +263,22 @@ func TestBookService_GetByUserID_InvalidUserID(t *testing.T) {
 	assert.Nil(t, results)
 	assert.Contains(t, err.Error(), "invalid user ID")
 
-	// Verify expectations
-	mockBookRepo.AssertExpectations(t)
-	mockUserRepo.AssertExpectations(t)
+	// Verify expectations handled by gomock controller
 }
 
 func TestBookService_GetByUserID_UserNotFound(t *testing.T) {
 	// Setup
-	mockBookRepo := new(MockBookRepository)
-	mockUserRepo := new(MockUserRepository)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
 	service := NewBookService(mockBookRepo, mockUserRepo)
 
 	userID := "123e4567-e89b-12d3-a456-426614174001"
 
 	// Expectations
-	mockUserRepo.On("FindByID", userID).Return(nil, nil)
+	mockUserRepo.EXPECT().FindByID(userID).Return(nil, nil)
 
 	// Test
 	results, err := service.GetByUserID(userID)
@@ -269,15 +286,16 @@ func TestBookService_GetByUserID_UserNotFound(t *testing.T) {
 	assert.Nil(t, results)
 	assert.Contains(t, err.Error(), "user not found")
 
-	// Verify expectations
-	mockBookRepo.AssertExpectations(t)
-	mockUserRepo.AssertExpectations(t)
+	// Verify expectations handled by gomock controller
 }
 
 func TestBookService_Update(t *testing.T) {
 	// Setup
-	mockBookRepo := new(MockBookRepository)
-	mockUserRepo := new(MockUserRepository)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
 	service := NewBookService(mockBookRepo, mockUserRepo)
 
 	bookID := "123e4567-e89b-12d3-a456-426614174000"
@@ -298,9 +316,9 @@ func TestBookService_Update(t *testing.T) {
 	}
 
 	// Expectations
-	mockBookRepo.On("FindByID", bookID).Return(existingBook, nil)
-	mockBookRepo.On("FindByISBN", bookUpdate.ISBN).Return(nil, nil)
-	mockBookRepo.On("Update", mock.AnythingOfType("*models.Book")).Return(nil)
+	mockBookRepo.EXPECT().FindByID(bookID).Return(existingBook, nil)
+	mockBookRepo.EXPECT().FindByISBN(bookUpdate.ISBN).Return(nil, nil)
+	mockBookRepo.EXPECT().Update(gomock.AssignableToTypeOf(&models.Book{})).Return(nil)
 
 	// Test
 	updatedBook, err := service.Update(bookID, bookUpdate)
@@ -312,14 +330,16 @@ func TestBookService_Update(t *testing.T) {
 	assert.Equal(t, bookUpdate.Description, updatedBook.Description)
 	assert.Equal(t, existingBook.UserID, updatedBook.UserID) // UserID should not change
 
-	// Verify expectations
-	mockBookRepo.AssertExpectations(t)
+	// Verify expectations handled by gomock controller
 }
 
 func TestBookService_Update_InvalidID(t *testing.T) {
 	// Setup
-	mockBookRepo := new(MockBookRepository)
-	mockUserRepo := new(MockUserRepository)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
 	service := NewBookService(mockBookRepo, mockUserRepo)
 
 	bookUpdate := &models.BookUpdate{
@@ -332,14 +352,16 @@ func TestBookService_Update_InvalidID(t *testing.T) {
 	assert.Nil(t, updatedBook)
 	assert.Contains(t, err.Error(), "invalid book ID")
 
-	// Verify expectations
-	mockBookRepo.AssertExpectations(t)
+	// Verify expectations handled by gomock controller
 }
 
 func TestBookService_Update_BookNotFound(t *testing.T) {
 	// Setup
-	mockBookRepo := new(MockBookRepository)
-	mockUserRepo := new(MockUserRepository)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
 	service := NewBookService(mockBookRepo, mockUserRepo)
 
 	bookID := "123e4567-e89b-12d3-a456-426614174000"
@@ -348,7 +370,7 @@ func TestBookService_Update_BookNotFound(t *testing.T) {
 	}
 
 	// Expectations
-	mockBookRepo.On("FindByID", bookID).Return(nil, nil)
+	mockBookRepo.EXPECT().FindByID(bookID).Return(nil, nil)
 
 	// Test
 	updatedBook, err := service.Update(bookID, bookUpdate)
@@ -356,14 +378,16 @@ func TestBookService_Update_BookNotFound(t *testing.T) {
 	assert.Nil(t, updatedBook)
 	assert.Contains(t, err.Error(), "book not found")
 
-	// Verify expectations
-	mockBookRepo.AssertExpectations(t)
+	// Verify expectations handled by gomock controller
 }
 
 func TestBookService_Delete(t *testing.T) {
 	// Setup
-	mockBookRepo := new(MockBookRepository)
-	mockUserRepo := new(MockUserRepository)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
 	service := NewBookService(mockBookRepo, mockUserRepo)
 
 	bookID := "123e4567-e89b-12d3-a456-426614174000"
@@ -372,21 +396,23 @@ func TestBookService_Delete(t *testing.T) {
 	}
 
 	// Expectations
-	mockBookRepo.On("FindByID", bookID).Return(book, nil)
-	mockBookRepo.On("Delete", bookID).Return(nil)
+	mockBookRepo.EXPECT().FindByID(bookID).Return(book, nil)
+	mockBookRepo.EXPECT().Delete(bookID).Return(nil)
 
 	// Test
 	err := service.Delete(bookID)
 	assert.NoError(t, err)
 
-	// Verify expectations
-	mockBookRepo.AssertExpectations(t)
+	// Verify expectations handled by gomock controller
 }
 
 func TestBookService_Delete_InvalidID(t *testing.T) {
 	// Setup
-	mockBookRepo := new(MockBookRepository)
-	mockUserRepo := new(MockUserRepository)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
 	service := NewBookService(mockBookRepo, mockUserRepo)
 
 	// Test
@@ -394,26 +420,27 @@ func TestBookService_Delete_InvalidID(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid book ID")
 
-	// Verify expectations
-	mockBookRepo.AssertExpectations(t)
+	// Verify expectations handled by gomock controller
 }
 
 func TestBookService_Delete_BookNotFound(t *testing.T) {
 	// Setup
-	mockBookRepo := new(MockBookRepository)
-	mockUserRepo := new(MockUserRepository)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
 	service := NewBookService(mockBookRepo, mockUserRepo)
 
 	bookID := "123e4567-e89b-12d3-a456-426614174000"
 
 	// Expectations
-	mockBookRepo.On("FindByID", bookID).Return(nil, nil)
+	mockBookRepo.EXPECT().FindByID(bookID).Return(nil, nil)
 
 	// Test
 	err := service.Delete(bookID)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "book not found")
 
-	// Verify expectations
-	mockBookRepo.AssertExpectations(t)
+	// Verify expectations handled by gomock controller
 }

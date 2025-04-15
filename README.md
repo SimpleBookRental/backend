@@ -96,6 +96,19 @@ make test
 
 # Run tests with coverage
 make test-coverage
+
+# Generate mocks for testing
+make mock
+```
+
+### Mocking
+
+This project uses [mockgen](https://github.com/uber-go/mock) for generating mock implementations of interfaces for testing. Mock files are automatically generated in the `internal/mocks` directory.
+
+To generate mocks manually, run:
+
+```bash
+make mock
 ```
 
 ## CI/CD
@@ -116,6 +129,7 @@ This project uses GitHub Actions for continuous integration:
 ├── internal
 │   ├── config                # Configuration
 │   ├── controllers           # HTTP request handlers
+│   ├── mocks                 # Generated mock implementations
 │   ├── models                # Data models
 │   ├── repositories          # Data access layer
 │   ├── routes                # API routes

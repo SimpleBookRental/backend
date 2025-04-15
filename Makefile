@@ -1,4 +1,4 @@
-.PHONY: build up down logs ps clean help restart test test-coverage start
+.PHONY: build up down logs ps clean help restart test test-coverage start mock
 
 # Default target
 .DEFAULT_GOAL := help
@@ -41,7 +41,7 @@ restart: down up
 	@echo "Services restarted"
 
 # Run tests
-test:
+test: mock
 	@echo "Running tests..."
 	go test ./... -count=1 -coverprofile=coverage.out
 
@@ -64,6 +64,17 @@ run:
 	@echo "Running application locally..."
 	go run cmd/api/main.go
 
+# Generate mocks
+mock:
+	@echo "Generating mocks..."
+	@mockgen -destination=internal/mocks/mock_user_service.go -package=mocks github.com/SimpleBookRental/backend/internal/services UserServiceInterface
+	@mockgen -destination=internal/mocks/mock_book_service.go -package=mocks github.com/SimpleBookRental/backend/internal/services BookServiceInterface
+	@mockgen -destination=internal/mocks/mock_token_service.go -package=mocks github.com/SimpleBookRental/backend/internal/services TokenServiceInterface
+	@mockgen -destination=internal/mocks/mock_user_repository.go -package=mocks github.com/SimpleBookRental/backend/internal/repositories UserRepositoryInterface
+	@mockgen -destination=internal/mocks/mock_book_repository.go -package=mocks github.com/SimpleBookRental/backend/internal/repositories BookRepositoryInterface
+	@mockgen -destination=internal/mocks/mock_token_repository.go -package=mocks github.com/SimpleBookRental/backend/internal/repositories TokenRepositoryInterface
+	@echo "Mocks generated successfully"
+
 # Help
 help:
 	@echo "Available commands:"
@@ -79,4 +90,5 @@ help:
 	@echo "  make test         - Run tests"
 	@echo "  make test-coverage - Run tests with coverage report"
 	@echo "  make start        - Build and start services"
+	@echo "  make mock         - Generate mock files for testing"
 	@echo "  make help         - Show this help"
