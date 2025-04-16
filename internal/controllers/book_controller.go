@@ -25,6 +25,24 @@ func (c *BookController) Create(ctx *gin.Context) {
 		return
 	}
 
+	// Get user ID and role from context
+	userID, userIDExists := ctx.Get("user_id")
+	role, roleExists := ctx.Get("role")
+
+	// Apply business logic based on role
+	if roleExists && userIDExists {
+		if role == models.UserRole {
+			// If role is USER, always use user_id from context
+			bookCreate.UserID = userID.(string)
+		} else if role == models.AdminRole {
+			if bookCreate.UserID == "" {
+				// If role is ADMIN and user_id is not provided, use user_id from context
+				bookCreate.UserID = userID.(string)
+			}
+			// If role is ADMIN and user_id is provided, use user_id from body
+		}
+	}
+
 	book, err := c.bookService.Create(&bookCreate)
 	if err != nil {
 		utils.BadRequest(ctx, "Failed to create book", err.Error())
@@ -44,27 +62,50 @@ func (c *BookController) GetByID(ctx *gin.Context) {
 		return
 	}
 
+	// Get user ID and role from context
+	userID, userIDExists := ctx.Get("user_id")
+	role, roleExists := ctx.Get("role")
+
+	// Apply business logic based on role
+	if roleExists && userIDExists {
+		if role == models.UserRole {
+			// If role is USER, can only view their own books
+			if book.UserID != userID.(string) {
+				utils.Forbidden(ctx, "You do not have permission to view this book")
+				return
+			}
+		}
+		// If role is ADMIN, can view any book
+	}
+
 	utils.OK(ctx, "Book retrieved successfully", book)
 }
 
 // GetAll handles getting all books
 func (c *BookController) GetAll(ctx *gin.Context) {
-	books, err := c.bookService.GetAll()
-	if err != nil {
-		utils.InternalServerError(ctx, "Failed to retrieve books", err.Error())
-		return
+	// Get user ID and role from context
+	userID, userIDExists := ctx.Get("user_id")
+	role, roleExists := ctx.Get("role")
+
+	var books []models.Book
+	var err error
+
+	// Apply business logic based on role
+	if roleExists && userIDExists {
+		if role == models.AdminRole {
+			// If role is ADMIN, get all books
+			books, err = c.bookService.GetAll()
+		} else if role == models.UserRole {
+			// If role is USER, only get books of that user
+			books, err = c.bookService.GetByUserID(userID.(string))
+		}
+	} else {
+		// Fallback for tests or when context is not available
+		books, err = c.bookService.GetAll()
 	}
 
-	utils.OK(ctx, "Books retrieved successfully", books)
-}
-
-// GetByUserID handles getting all books by user ID
-func (c *BookController) GetByUserID(ctx *gin.Context) {
-	userID := ctx.Param("user_id")
-
-	books, err := c.bookService.GetByUserID(userID)
 	if err != nil {
-		utils.BadRequest(ctx, "Failed to retrieve books", err.Error())
+		utils.InternalServerError(ctx, "Failed to retrieve books", err.Error())
 		return
 	}
 
@@ -75,10 +116,36 @@ func (c *BookController) GetByUserID(ctx *gin.Context) {
 func (c *BookController) Update(ctx *gin.Context) {
 	id := ctx.Param("id")
 
+	// Get the book first to check ownership
+	existingBook, err := c.bookService.GetByID(id)
+	if err != nil {
+		utils.NotFound(ctx, err.Error())
+		return
+	}
+
 	var bookUpdate models.BookUpdate
 	if err := ctx.ShouldBindJSON(&bookUpdate); err != nil {
 		utils.BadRequest(ctx, "Invalid request body", err.Error())
 		return
+	}
+
+	// Get user ID and role from context
+	userID, userIDExists := ctx.Get("user_id")
+	role, roleExists := ctx.Get("role")
+
+	// Apply business logic based on role
+	if roleExists && userIDExists {
+		if role == models.UserRole {
+			// If role is USER, can only update their own books
+			if existingBook.UserID != userID.(string) {
+				utils.Forbidden(ctx, "You do not have permission to update this book")
+				return
+			}
+
+			// Do not allow changing user_id
+			bookUpdate.UserID = existingBook.UserID
+		}
+		// If role is ADMIN, can update any book
 	}
 
 	book, err := c.bookService.Update(id, &bookUpdate)
@@ -94,7 +161,30 @@ func (c *BookController) Update(ctx *gin.Context) {
 func (c *BookController) Delete(ctx *gin.Context) {
 	id := ctx.Param("id")
 
-	err := c.bookService.Delete(id)
+	// Get the book first to check ownership
+	existingBook, err := c.bookService.GetByID(id)
+	if err != nil {
+		utils.NotFound(ctx, err.Error())
+		return
+	}
+
+	// Get user ID and role from context
+	userID, userIDExists := ctx.Get("user_id")
+	role, roleExists := ctx.Get("role")
+
+	// Apply business logic based on role
+	if roleExists && userIDExists {
+		if role == models.UserRole {
+			// If role is USER, can only delete their own books
+			if existingBook.UserID != userID.(string) {
+				utils.Forbidden(ctx, "You do not have permission to delete this book")
+				return
+			}
+		}
+		// If role is ADMIN, can delete any book
+	}
+
+	err = c.bookService.Delete(id)
 	if err != nil {
 		utils.BadRequest(ctx, "Failed to delete book", err.Error())
 		return

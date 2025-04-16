@@ -41,7 +41,7 @@ restart: down up
 	@echo "Services restarted"
 
 # Run tests
-test:
+test: mock
 	@echo "Running tests..."
 	go test ./... -count=1 -coverprofile=coverage.out
 

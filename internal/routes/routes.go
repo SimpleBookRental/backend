@@ -46,15 +46,22 @@ func SetupRoutes(
 			// Book routes
 			books := auth.Group("books")
 			{
+				// All authenticated users can create books
 				books.POST("", bookController.Create)
+
+				// All authenticated users can get all books (filtered by role in controller)
 				books.GET("", bookController.GetAll)
+
+				// All authenticated users can get a book by ID (filtered by role in controller)
 				books.GET("/:id", bookController.GetByID)
+
+				// All authenticated users can update a book (filtered by role in controller)
 				books.PUT("/:id", bookController.Update)
+
+				// All authenticated users can delete a book (filtered by role in controller)
 				books.DELETE("/:id", bookController.Delete)
 			}
 
-			// User's books routes
-			auth.GET("/user-books/:user_id", bookController.GetByUserID)
 		}
 	}
 }

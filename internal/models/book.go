@@ -39,7 +39,7 @@ type BookCreate struct {
 	Author      string `json:"author" binding:"required"`
 	ISBN        string `json:"isbn" binding:"required"`
 	Description string `json:"description"`
-	UserID      string `json:"user_id" binding:"required,uuid"`
+	UserID      string `json:"user_id" binding:"omitempty,uuid"`
 }
 
 // BookUpdate is the request body for updating a book

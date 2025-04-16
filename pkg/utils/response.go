@@ -56,3 +56,8 @@ func NotFound(c *gin.Context, message string) {
 func InternalServerError(c *gin.Context, message string, err interface{}) {
 	ErrorResponse(c, http.StatusInternalServerError, message, err)
 }
+
+// Forbidden returns a 403 Forbidden response
+func Forbidden(c *gin.Context, message string) {
+	ErrorResponse(c, http.StatusForbidden, message, nil)
+}

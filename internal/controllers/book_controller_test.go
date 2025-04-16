@@ -32,7 +32,6 @@ func setupBookController(t *testing.T) (*gin.Engine, *mocks.MockBookServiceInter
 		v1.GET("/books/:id", controller.GetByID)
 		v1.PUT("/books/:id", controller.Update)
 		v1.DELETE("/books/:id", controller.Delete)
-		v1.GET("/user-books/:user_id", controller.GetByUserID)
 	}
 
 	return router, mockService
@@ -262,70 +261,6 @@ func TestBookController_GetByID_ServiceError(t *testing.T) {
 	// Verify expectations handled by gomock controller
 }
 
-func TestBookController_GetByUserID(t *testing.T) {
-	// Setup
-	router, mockService := setupBookController(t)
-
-	userID := "123e4567-e89b-12d3-a456-426614174001"
-	books := []models.Book{
-		{
-			ID:     "123e4567-e89b-12d3-a456-426614174002",
-			Title:  "Book 1",
-			UserID: userID,
-		},
-		{
-			ID:     "123e4567-e89b-12d3-a456-426614174003",
-			Title:  "Book 2",
-			UserID: userID,
-		},
-	}
-
-	// Expectations
-	mockService.EXPECT().GetByUserID(userID).Return(books, nil)
-
-	// Create request
-	req, _ := http.NewRequest("GET", "/api/v1/user-books/"+userID, nil)
-	w := httptest.NewRecorder()
-
-	// Perform request
-	router.ServeHTTP(w, req)
-
-	// Assert
-	assert.Equal(t, http.StatusOK, w.Code)
-	var response map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &response)
-	assert.Equal(t, true, response["success"])
-	assert.Equal(t, "Books retrieved successfully", response["message"])
-
-	// Verify expectations handled by gomock controller
-}
-
-func TestBookController_GetByUserID_ServiceError(t *testing.T) {
-	// Setup
-	router, mockService := setupBookController(t)
-
-	userID := "123e4567-e89b-12d3-a456-426614174001"
-
-	// Expectations
-	mockService.EXPECT().GetByUserID(userID).Return([]models.Book{}, errors.New("service error"))
-
-	// Create request
-	req, _ := http.NewRequest("GET", "/api/v1/user-books/"+userID, nil)
-	w := httptest.NewRecorder()
-
-	// Perform request
-	router.ServeHTTP(w, req)
-
-	// Assert
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-	var response map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &response)
-	assert.Equal(t, false, response["success"])
-	assert.Equal(t, "Failed to retrieve books", response["message"])
-
-	// Verify expectations handled by gomock controller
-}
-
 func TestBookController_Update(t *testing.T) {
 	// Setup
 	router, mockService := setupBookController(t)
@@ -338,6 +273,15 @@ func TestBookController_Update(t *testing.T) {
 		Description: "Updated description",
 	}
 
+	existingBook := &models.Book{
+		ID:          bookID,
+		Title:       "Original Book",
+		Author:      "Original Author",
+		ISBN:        "ISBN-123",
+		Description: "Original description",
+		UserID:      "user-id",
+	}
+
 	updatedBook := &models.Book{
 		ID:          bookID,
 		Title:       bookUpdate.Title,
@@ -348,6 +292,7 @@ func TestBookController_Update(t *testing.T) {
 	}
 
 	// Expectations
+	mockService.EXPECT().GetByID(bookID).Return(existingBook, nil)
 	mockService.EXPECT().Update(bookID, gomock.AssignableToTypeOf(&models.BookUpdate{})).Return(updatedBook, nil)
 
 	// Create request
@@ -371,9 +316,20 @@ func TestBookController_Update(t *testing.T) {
 
 func TestBookController_Update_InvalidRequest(t *testing.T) {
 	// Setup
-	router, _ := setupBookController(t)
+	router, mockService := setupBookController(t)
 
 	bookID := "123e4567-e89b-12d3-a456-426614174000"
+	existingBook := &models.Book{
+		ID:          bookID,
+		Title:       "Original Book",
+		Author:      "Original Author",
+		ISBN:        "ISBN-123",
+		Description: "Original description",
+		UserID:      "user-id",
+	}
+
+	// Expectations
+	mockService.EXPECT().GetByID(bookID).Return(existingBook, nil)
 
 	// Invalid request (invalid JSON)
 	req, _ := http.NewRequest("PUT", "/api/v1/books/"+bookID, bytes.NewBuffer([]byte("invalid json")))
@@ -405,7 +361,17 @@ func TestBookController_Update_ServiceError(t *testing.T) {
 		Description: "Updated description",
 	}
 
+	existingBook := &models.Book{
+		ID:          bookID,
+		Title:       "Original Book",
+		Author:      "Original Author",
+		ISBN:        "ISBN-123",
+		Description: "Original description",
+		UserID:      "user-id",
+	}
+
 	// Expectations
+	mockService.EXPECT().GetByID(bookID).Return(existingBook, nil)
 	mockService.EXPECT().Update(bookID, gomock.AssignableToTypeOf(&models.BookUpdate{})).Return(nil, errors.New("service error"))
 
 	// Create request
@@ -432,8 +398,17 @@ func TestBookController_Delete(t *testing.T) {
 	router, mockService := setupBookController(t)
 
 	bookID := "123e4567-e89b-12d3-a456-426614174000"
+	existingBook := &models.Book{
+		ID:          bookID,
+		Title:       "Original Book",
+		Author:      "Original Author",
+		ISBN:        "ISBN-123",
+		Description: "Original description",
+		UserID:      "user-id",
+	}
 
 	// Expectations
+	mockService.EXPECT().GetByID(bookID).Return(existingBook, nil)
 	mockService.EXPECT().Delete(bookID).Return(nil)
 
 	// Create request
@@ -458,8 +433,17 @@ func TestBookController_Delete_ServiceError(t *testing.T) {
 	router, mockService := setupBookController(t)
 
 	bookID := "123e4567-e89b-12d3-a456-426614174000"
+	existingBook := &models.Book{
+		ID:          bookID,
+		Title:       "Original Book",
+		Author:      "Original Author",
+		ISBN:        "ISBN-123",
+		Description: "Original description",
+		UserID:      "user-id",
+	}
 
 	// Expectations
+	mockService.EXPECT().GetByID(bookID).Return(existingBook, nil)
 	mockService.EXPECT().Delete(bookID).Return(errors.New("service error"))
 
 	// Create request
@@ -475,6 +459,85 @@ func TestBookController_Delete_ServiceError(t *testing.T) {
 	json.Unmarshal(w.Body.Bytes(), &response)
 	assert.Equal(t, false, response["success"])
 	assert.Equal(t, "Failed to delete book", response["message"])
+
+	// Verify expectations handled by gomock controller
+}
+
+func TestBookController_GetByID_NotFound(t *testing.T) {
+	// Setup
+	router, mockService := setupBookController(t)
+
+	bookID := "123e4567-e89b-12d3-a456-426614174000"
+
+	// Expectations
+	mockService.EXPECT().GetByID(bookID).Return(nil, errors.New("book not found"))
+
+	// Create request
+	req, _ := http.NewRequest("GET", "/api/v1/books/"+bookID, nil)
+	w := httptest.NewRecorder()
+
+	// Perform request
+	router.ServeHTTP(w, req)
+
+	// Assert
+	assert.Equal(t, http.StatusNotFound, w.Code)
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, false, response["success"])
+	assert.Equal(t, "book not found", response["message"])
+
+	// Verify expectations handled by gomock controller
+}
+
+func TestBookController_Update_BookNotFound(t *testing.T) {
+	// Setup
+	router, mockService := setupBookController(t)
+
+	bookID := "123e4567-e89b-12d3-a456-426614174000"
+
+	// Expectations
+	mockService.EXPECT().GetByID(bookID).Return(nil, errors.New("book not found"))
+
+	// Create request
+	req, _ := http.NewRequest("PUT", "/api/v1/books/"+bookID, bytes.NewBuffer([]byte("{}")))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+
+	// Perform request
+	router.ServeHTTP(w, req)
+
+	// Assert
+	assert.Equal(t, http.StatusNotFound, w.Code)
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, false, response["success"])
+	assert.Equal(t, "book not found", response["message"])
+
+	// Verify expectations handled by gomock controller
+}
+
+func TestBookController_Delete_BookNotFound(t *testing.T) {
+	// Setup
+	router, mockService := setupBookController(t)
+
+	bookID := "123e4567-e89b-12d3-a456-426614174000"
+
+	// Expectations
+	mockService.EXPECT().GetByID(bookID).Return(nil, errors.New("book not found"))
+
+	// Create request
+	req, _ := http.NewRequest("DELETE", "/api/v1/books/"+bookID, nil)
+	w := httptest.NewRecorder()
+
+	// Perform request
+	router.ServeHTTP(w, req)
+
+	// Assert
+	assert.Equal(t, http.StatusNotFound, w.Code)
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, false, response["success"])
+	assert.Equal(t, "book not found", response["message"])
 
 	// Verify expectations handled by gomock controller
 }
