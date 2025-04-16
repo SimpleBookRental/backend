@@ -14,16 +14,16 @@
     - `Makefile`
     - `Dockerfile`
     - `docker-compose.yml`
-
+    - `swagger.yaml`
+    - `.github/workflows/backend.yml`
 
 # Project Libraries
 
 - Use `github.com/go-gorm/gorm` for ORM.
-- Use `github.com/gin-gonic/gin` for HTTP web framework.
-- Use `github.com/uber-go/mock` for mocking.
+- Use `github.com/gin-gonic/gin` as the HTTP web framework.
+- Use `github.com/uber-go/mock` for mocking in unit tests.
 
 # Project Structure
 
 - Must follow the Clean Architecture approach.
 - Must adhere to SOLID principles.
-

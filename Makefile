@@ -1,4 +1,4 @@
-.PHONY: build up down logs ps clean help restart test test-coverage start mock
+.PHONY: build up down logs ps clean help restart test test-coverage start mock swagger
 
 # Default target
 .DEFAULT_GOAL := help

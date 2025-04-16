@@ -3,6 +3,10 @@ package main
 import (
 	"fmt"
 	"log"
+	"time"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 
 	"github.com/SimpleBookRental/backend/internal/config"
 	"github.com/SimpleBookRental/backend/internal/controllers"
@@ -10,7 +14,6 @@ import (
 	"github.com/SimpleBookRental/backend/internal/routes"
 	"github.com/SimpleBookRental/backend/internal/services"
 	"github.com/SimpleBookRental/backend/pkg/database"
-	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -49,6 +52,16 @@ func main() {
 
 	// Initialize router
 	router := gin.Default()
+
+	// Configure CORS
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	// Setup routes
 	routes.SetupRoutes(router, userController, bookController, tokenController, tokenRepo)
