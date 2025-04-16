@@ -7,12 +7,19 @@ import (
 	"gorm.io/gorm"
 )
 
+// Role types
+const (
+	AdminRole string = "ADMIN"
+	UserRole  string = "USER"
+)
+
 // User represents a user in the system
 type User struct {
 	ID        string    `gorm:"type:uuid;primary_key" json:"id"`
 	Name      string    `gorm:"size:100;not null" json:"name"`
 	Email     string    `gorm:"size:100;not null;unique" json:"email"`
 	Password  string    `gorm:"size:100;not null" json:"-"`
+	Role      string    `gorm:"size:20;not null;default:'USER'" json:"role"`
 	Books     []*Book   `gorm:"foreignKey:UserID" json:"books,omitempty"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
@@ -28,6 +35,12 @@ func (u *User) BeforeCreate(tx *gorm.DB) error {
 	if u.ID == "" {
 		u.ID = utils.GenerateUUID()
 	}
+
+	// Set default role if not provided
+	if u.Role == "" {
+		u.Role = UserRole
+	}
+
 	return nil
 }
 

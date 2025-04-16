@@ -15,6 +15,7 @@ func SetupRoutes(
 	bookController *controllers.BookController,
 	tokenController *controllers.TokenController,
 	tokenRepo *repositories.TokenRepository,
+	userRepo *repositories.UserRepository,
 ) {
 	// API v1 group
 	v1 := router.Group("/api/v1")
@@ -31,7 +32,7 @@ func SetupRoutes(
 		// Protected routes (authentication required)
 		// Apply auth middleware to all protected routes
 		auth := v1.Group("/")
-		auth.Use(middleware.AuthMiddleware(tokenRepo))
+		auth.Use(middleware.AuthMiddleware(tokenRepo, userRepo))
 		{
 			// User routes
 			users := auth.Group("users")

@@ -522,6 +522,11 @@ components:
           type: string
           format: email
           example: "john@example.com"
+        role:
+          type: string
+          enum: ["ADMIN", "USER"]
+          example: "USER"
+          description: "User role (ADMIN or USER)"
         created_at:
           type: string
           format: date-time
@@ -536,6 +541,7 @@ components:
         - id
         - name
         - email
+        - role
         - created_at
         - updated_at
 

@@ -12,7 +12,7 @@ import (
 )
 
 // AuthMiddleware validates JWT tokens
-func AuthMiddleware(tokenRepo repositories.TokenRepositoryInterface) gin.HandlerFunc {
+func AuthMiddleware(tokenRepo repositories.TokenRepositoryInterface, userRepo repositories.UserRepositoryInterface) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Get authorization header
 		authHeader := c.GetHeader("Authorization")
@@ -38,6 +38,17 @@ func AuthMiddleware(tokenRepo repositories.TokenRepositoryInterface) gin.Handler
 
 		// Get token
 		tokenString := parts[1]
+
+		// Validate token
+		claims, err := utils.ValidateToken(tokenString, utils.GetAccessSecret())
+		if err != nil {
+			c.AbortWithStatusJSON(401, gin.H{
+				"success": false,
+				"message": "Invalid or expired token",
+				"data":    nil,
+			})
+			return
+		}
 
 		// Check if token exists and is valid
 		issuedToken, err := tokenRepo.FindTokenByValue(tokenString)
@@ -70,8 +81,8 @@ func AuthMiddleware(tokenRepo repositories.TokenRepositoryInterface) gin.Handler
 			return
 		}
 
-		// Check if token is expired
-		if issuedToken.ExpiresAt.Before(time.Now()) {
+		// Check if token has expired
+		if time.Now().After(issuedToken.ExpiresAt) {
 			c.AbortWithStatusJSON(401, gin.H{
 				"success": false,
 				"message": "Token has expired",
@@ -80,7 +91,7 @@ func AuthMiddleware(tokenRepo repositories.TokenRepositoryInterface) gin.Handler
 			return
 		}
 
-		// Check if token is an access token
+		// Check token type
 		if issuedToken.TokenType != string(models.AccessToken) {
 			c.AbortWithStatusJSON(401, gin.H{
 				"success": false,
@@ -90,20 +101,21 @@ func AuthMiddleware(tokenRepo repositories.TokenRepositoryInterface) gin.Handler
 			return
 		}
 
-		// Validate token
-		claims, err := utils.ValidateToken(tokenString, utils.GetAccessSecret())
-		if err != nil {
+		// Get user from database to get role
+		user, err := userRepo.FindByID(claims.UserID)
+		if err != nil || user == nil {
 			c.AbortWithStatusJSON(401, gin.H{
 				"success": false,
-				"message": "Invalid or expired token",
+				"message": "User not found",
 				"data":    nil,
 			})
 			return
 		}
 
-		// Set user ID and email in context
+		// Set user ID, email and role in context
 		c.Set("user_id", claims.UserID)
 		c.Set("email", claims.Email)
+		c.Set("role", user.Role)
 
 		c.Next()
 	}

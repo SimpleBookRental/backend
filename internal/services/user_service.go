@@ -40,11 +40,12 @@ func (s *UserService) Create(userCreate *models.UserCreate) (*models.User, error
 		return nil, fmt.Errorf("error hashing password: %w", err)
 	}
 
-	// Create user
+	// Create user with default USER role
 	user := &models.User{
 		Name:     userCreate.Name,
 		Email:    userCreate.Email,
 		Password: hashedPassword,
+		Role:     models.UserRole,
 	}
 
 	err = s.userRepo.Create(user)

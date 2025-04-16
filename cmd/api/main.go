@@ -64,7 +64,7 @@ func main() {
 	}))
 
 	// Setup routes
-	routes.SetupRoutes(router, userController, bookController, tokenController, tokenRepo)
+	routes.SetupRoutes(router, userController, bookController, tokenController, tokenRepo, userRepo)
 
 	// Start server
 	serverAddr := fmt.Sprintf(":%s", cfg.Server.Port)

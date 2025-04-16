@@ -5,11 +5,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/SimpleBookRental/backend/internal/config"
-	"github.com/SimpleBookRental/backend/internal/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+
+	"github.com/SimpleBookRental/backend/internal/config"
+	"github.com/SimpleBookRental/backend/internal/models"
+	"github.com/SimpleBookRental/backend/pkg/utils"
 )
 
 // DB is the database connection
@@ -62,6 +64,46 @@ func Migrate(db *gorm.DB) error {
 		return fmt.Errorf("failed to migrate database: %w", err)
 	}
 
+	// Create default admin user if it doesn't exist
+	err = createDefaultAdminUser(db)
+	if err != nil {
+		return fmt.Errorf("failed to create default admin user: %w", err)
+	}
+
 	log.Println("Database migrations completed")
+	return nil
+}
+
+// createDefaultAdminUser creates a default admin user if it doesn't exist
+func createDefaultAdminUser(db *gorm.DB) error {
+	// Check if admin user already exists
+	var count int64
+	db.Model(&models.User{}).Where("email = ?", "admin@system.com").Count(&count)
+
+	if count > 0 {
+		log.Println("Default admin user already exists")
+		return nil
+	}
+
+	// Hash password
+	hashedPassword, err := utils.HashPassword("admin")
+	if err != nil {
+		return fmt.Errorf("error hashing password: %w", err)
+	}
+
+	// Create admin user
+	adminUser := &models.User{
+		Name:     "Admin",
+		Email:    "admin@system.com",
+		Password: hashedPassword,
+		Role:     models.AdminRole,
+	}
+
+	result := db.Create(adminUser)
+	if result.Error != nil {
+		return fmt.Errorf("error creating admin user: %w", result.Error)
+	}
+
+	log.Println("Default admin user created successfully")
 	return nil
 }

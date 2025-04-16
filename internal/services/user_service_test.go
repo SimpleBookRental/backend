@@ -35,6 +35,7 @@ func TestUserService_Create(t *testing.T) {
 	assert.NotNil(t, user)
 	assert.Equal(t, userCreate.Name, user.Name)
 	assert.Equal(t, userCreate.Email, user.Email)
+	assert.Equal(t, models.UserRole, user.Role)            // Role should be USER by default
 	assert.NotEqual(t, userCreate.Password, user.Password) // Password should be hashed
 
 	// Verify expectations handled by gomock controller
@@ -83,6 +84,7 @@ func TestUserService_GetByID(t *testing.T) {
 		ID:    "123e4567-e89b-12d3-a456-426614174001",
 		Name:  "Test User",
 		Email: "test@example.com",
+		Role:  models.UserRole,
 	}
 
 	// Expectations
@@ -148,11 +150,13 @@ func TestUserService_GetAll(t *testing.T) {
 			ID:    "123e4567-e89b-12d3-a456-426614174001",
 			Name:  "User 1",
 			Email: "user1@example.com",
+			Role:  models.UserRole,
 		},
 		{
 			ID:    "123e4567-e89b-12d3-a456-426614174002",
 			Name:  "User 2",
 			Email: "user2@example.com",
+			Role:  models.UserRole,
 		},
 	}
 
@@ -187,6 +191,7 @@ func TestUserService_Update(t *testing.T) {
 		Name:     "Test User",
 		Email:    "test@example.com",
 		Password: "hashedpassword",
+		Role:     models.UserRole,
 	}
 
 	// Expectations
@@ -271,6 +276,7 @@ func TestUserService_Update_EmailExists(t *testing.T) {
 		ID:    userID,
 		Name:  "Test User",
 		Email: "test@example.com",
+		Role:  models.UserRole,
 	}
 
 	anotherUser := &models.User{
@@ -301,7 +307,8 @@ func TestUserService_Delete(t *testing.T) {
 
 	userID := "123e4567-e89b-12d3-a456-426614174001"
 	user := &models.User{
-		ID: userID,
+		ID:   userID,
+		Role: models.UserRole,
 	}
 
 	// Expectations
@@ -372,6 +379,7 @@ func TestUserService_Login(t *testing.T) {
 		ID:       "123e4567-e89b-12d3-a456-426614174001",
 		Email:    userLogin.Email,
 		Password: hashedPassword,
+		Role:     models.UserRole,
 	}
 
 	// Expectations
@@ -470,6 +478,7 @@ func TestUserService_Login_TokenCreationError(t *testing.T) {
 		ID:       "123e4567-e89b-12d3-a456-426614174001",
 		Email:    userLogin.Email,
 		Password: hashedPassword,
+		Role:     models.UserRole,
 	}
 
 	// Expectations
