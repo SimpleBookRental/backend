@@ -41,14 +41,11 @@ jobs:
     - name: Install mockgen
       run: go install go.uber.org/mock/mockgen@latest
 
-    - name: Generate mocks
-      run: make mock
-
     - name: Build
       run: go build -v ./...
 
     - name: Test
-      run: go test -v ./...
+      run: make test
       env:
         DB_HOST: localhost
         DB_PORT: 5432
