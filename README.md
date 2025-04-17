@@ -1,147 +1,114 @@
 # Simple Book Rental API
 
-[![Go Build and Test](https://github.com/SimpleBookRental/backend/actions/workflows/go.yml/badge.svg)](https://github.com/SimpleBookRental/backend/actions/workflows/go.yml)
+A RESTful API for a book rental system built with Go, Gin, and GORM, following Clean Architecture.
 
-A RESTful API for a simple book rental system built with Go, Gin, and GORM.
+## Main Features
 
-## Features
+- User & book CRUD
+- JWT authentication, role-based access (ADMIN/USER)
+- Book ownership & transfer
+- PostgreSQL, Docker, CI/CD with GitHub Actions
 
-- CRUD operations for users and books
-- RESTful API design
-- PostgreSQL database with GORM ORM
-- Clean architecture
-- Docker support
+## Quick Start
 
-## Requirements
+### Prerequisites
 
-- Go 1.24 or higher
+- Go 1.24+
 - PostgreSQL
 - Docker (optional)
 
-## Getting Started
-
-### Environment Setup
-
-Copy the example environment file and modify it as needed:
+### Setup
 
 ```bash
 cp .env.example .env
-```
-
-### Running Locally
-
-```bash
-# Build the application
 make build
-
-# Run the application
 make run
 ```
 
-### Running with Docker
+Or with Docker:
 
 ```bash
-# Build and run with Docker Compose
-make docker-run
+docker-compose up --build
 ```
 
-## API Endpoints
-
-### Users
-
-- `POST /api/v1/users` - Create a new user
-- `GET /api/v1/users` - Get all users
-- `GET /api/v1/users/:id` - Get a user by ID
-- `PUT /api/v1/users/:id` - Update a user
-- `DELETE /api/v1/users/:id` - Delete a user
-
-### Books
-
-- `POST /api/v1/books` - Create a new book
-- `GET /api/v1/books` - Get all books
-- `GET /api/v1/books/:id` - Get a book by ID
-- `PUT /api/v1/books/:id` - Update a book
-- `DELETE /api/v1/books/:id` - Delete a book
-
-### User's Books
-
-- `GET /api/v1/user-books/:user_id` - Get all books by user ID
-
-### Authentication
-
-- `POST /api/v1/login` - Login with email and password (returns access token and refresh token)
-- `POST /api/v1/refresh-token` - Refresh access token using refresh token
-- `POST /api/v1/logout` - Logout and revoke refresh token
-
-### Authentication Middleware
-
-All API endpoints except the following require a valid JWT token in the Authorization header:
-
-- `POST /api/v1/users` - Create a new user
-- `POST /api/v1/login` - Login
-- `POST /api/v1/refresh-token` - Refresh token
-- `POST /api/v1/logout` - Logout
-
-To access protected endpoints, include the JWT token in the Authorization header:
-
-```
-Authorization: Bearer {your_access_token}
-```
-
-## Testing
+### Run Tests
 
 ```bash
-# Run tests
 make test
-
-# Run tests with coverage
 make test-coverage
-
-# Generate mocks for testing
 make mock
 ```
 
-### Mocking
+## API Documentation
 
-This project uses [mockgen](https://github.com/uber-go/mock) for generating mock implementations of interfaces for testing. Mock files are automatically generated in the `internal/mocks` directory.
+### Generate OpenAPI (swagger.yaml) automatically
 
-To generate mocks manually, run:
+This project uses [swaggo/swag](https://github.com/swaggo/swag) to generate the `swagger.yaml` file from annotated Go code.
+
+#### 1. Install swag CLI
 
 ```bash
-make mock
+go install github.com/swaggo/swag/cmd/swag@latest
 ```
+Make sure `$GOPATH/bin` (or `$GOBIN`) is in your `PATH`.
 
-## CI/CD
+#### 2. Annotate your handlers
 
-This project uses GitHub Actions for continuous integration:
+Add swagger comments to your handler functions. Example for a user controller:
 
-- **Build and Test**: Builds the application and runs tests on every push and pull request
+```go
+// CreateUser godoc
+// @Summary      Create user
+// @Description  Create a new user
+// @Tags         Users
+// @Accept       json
+// @Produce      json
+// @Param        user  body      models.UserCreate  true  "User create payload"
+// @Success      201   {object}  models.User
+// @Failure      400   {object}  models.ErrorResponse
+// @Router       /api/v1/users [post]
+func (uc *UserController) CreateUser(c *gin.Context) {
+    // ...
+}
+```
+> See [swaggo/swag annotation docs](https://github.com/swaggo/swag#declarative-comments-format) for more details.
+
+#### 3. Generate swagger.yaml
+
+```bash
+make swagger
+```
+This will scan your code and update `swagger.yaml` at the project root.
+
+- User registration, login, JWT refresh/logout
+- CRUD for users and books
+- Book transfer between users
+- Role-based access: ADMIN (all), USER (own resources)
+
+See `swagger.yaml` for full API details.
 
 ## Project Structure
 
 ```
 .
-├── .github
-│   └── workflows            # GitHub Actions workflows
-├── cmd
-│   └── api
-│       └── main.go           # Application entry point
-├── internal
-│   ├── config                # Configuration
-│   ├── controllers           # HTTP request handlers
-│   ├── mocks                 # Generated mock implementations
-│   ├── models                # Data models
-│   ├── repositories          # Data access layer
-│   ├── routes                # API routes
-│   └── services              # Business logic
-├── pkg
-│   ├── database              # Database connection
-│   └── utils                 # Utility functions
-├── .env                      # Environment variables
-├── docker-compose.yml        # Docker Compose configuration
-├── Dockerfile                # Docker configuration
-└── Makefile                  # Build commands
+├── cmd/api/                 # Entry point
+├── internal/
+│   ├── controllers/         # HTTP handlers
+│   ├── middleware/          # Auth, role middleware
+│   ├── models/              # Data models
+│   ├── repositories/        # Data access
+│   ├── services/            # Business logic
+│   ├── mocks/               # Generated mocks
+│   └── routes/              # API routes
+├── pkg/                     # Utilities, DB
+├── .github/workflows/       # CI/CD
+├── Dockerfile, Makefile, etc.
 ```
+
+## CI/CD
+
+- GitHub Actions: build, test, coverage on push/PR
+- Mocks auto-generated before test
 
 ## License
 

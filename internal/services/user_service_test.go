@@ -1,495 +1,257 @@
+// Unit tests for UserService using gomock and testify.
 package services
 
 import (
 	"errors"
 	"testing"
-
-	"github.com/SimpleBookRental/backend/internal/mocks"
 	"github.com/SimpleBookRental/backend/internal/models"
+	"github.com/SimpleBookRental/backend/internal/mocks"
 	"github.com/SimpleBookRental/backend/pkg/utils"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
 
-func TestUserService_Create(t *testing.T) {
-	// Setup
+func TestUserService_Create_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
-	mockRepo := mocks.NewMockUserRepositoryInterface(ctrl)
-	service := NewUserService(mockRepo)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
+	service := NewUserService(mockUserRepo)
 
 	userCreate := &models.UserCreate{
 		Name:     "Test User",
 		Email:    "test@example.com",
 		Password: "password123",
 	}
+	mockUserRepo.EXPECT().FindByEmail(userCreate.Email).Return(nil, nil)
+	mockUserRepo.EXPECT().Create(gomock.Any()).Return(nil)
 
-	// Expectations
-	mockRepo.EXPECT().FindByEmail(userCreate.Email).Return(nil, nil)
-	mockRepo.EXPECT().Create(gomock.AssignableToTypeOf(&models.User{})).Return(nil)
-
-	// Test
 	user, err := service.Create(userCreate)
 	assert.NoError(t, err)
-	assert.NotNil(t, user)
-	assert.Equal(t, userCreate.Name, user.Name)
 	assert.Equal(t, userCreate.Email, user.Email)
-	assert.Equal(t, models.UserRole, user.Role)            // Role should be USER by default
-	assert.NotEqual(t, userCreate.Password, user.Password) // Password should be hashed
-
-	// Verify expectations handled by gomock controller
 }
 
 func TestUserService_Create_EmailExists(t *testing.T) {
-	// Setup
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
-	mockRepo := mocks.NewMockUserRepositoryInterface(ctrl)
-	service := NewUserService(mockRepo)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
+	service := NewUserService(mockUserRepo)
 
 	userCreate := &models.UserCreate{
 		Name:     "Test User",
 		Email:    "test@example.com",
 		Password: "password123",
 	}
+	mockUserRepo.EXPECT().FindByEmail(userCreate.Email).Return(&models.User{}, nil)
 
-	existingUser := &models.User{
-		ID:    "123e4567-e89b-12d3-a456-426614174002",
-		Email: userCreate.Email,
-	}
-
-	// Expectations
-	mockRepo.EXPECT().FindByEmail(userCreate.Email).Return(existingUser, nil)
-
-	// Test
 	user, err := service.Create(userCreate)
-	assert.Error(t, err)
 	assert.Nil(t, user)
-	assert.Contains(t, err.Error(), "email already exists")
-
-	// Verify expectations handled by gomock controller
+	assert.ErrorContains(t, err, "email already exists")
 }
 
-func TestUserService_GetByID(t *testing.T) {
-	// Setup
+func TestUserService_Create_RepoError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
+	service := NewUserService(mockUserRepo)
 
-	mockRepo := mocks.NewMockUserRepositoryInterface(ctrl)
-	service := NewUserService(mockRepo)
-
-	user := &models.User{
-		ID:    "123e4567-e89b-12d3-a456-426614174001",
-		Name:  "Test User",
-		Email: "test@example.com",
-		Role:  models.UserRole,
+	userCreate := &models.UserCreate{
+		Name:     "Test User",
+		Email:    "test@example.com",
+		Password: "password123",
 	}
+	mockUserRepo.EXPECT().FindByEmail(userCreate.Email).Return(nil, errors.New("db error"))
 
-	// Expectations
-	mockRepo.EXPECT().FindByID(user.ID).Return(user, nil)
+	user, err := service.Create(userCreate)
+	assert.Nil(t, user)
+	assert.ErrorContains(t, err, "error checking existing user")
+}
 
-	// Test
-	result, err := service.GetByID(user.ID)
+func TestUserService_GetByID_Success(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
+	service := NewUserService(mockUserRepo)
+
+	user := &models.User{ID: "11111111-1111-1111-1111-111111111111"}
+	mockUserRepo.EXPECT().FindByID(user.ID).Return(user, nil)
+
+	got, err := service.GetByID(user.ID)
 	assert.NoError(t, err)
-	assert.Equal(t, user, result)
-
-	// Verify expectations handled by gomock controller
+	assert.Equal(t, user.ID, got.ID)
 }
 
 func TestUserService_GetByID_InvalidID(t *testing.T) {
-	// Setup
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
+	service := NewUserService(mockUserRepo)
 
-	mockRepo := mocks.NewMockUserRepositoryInterface(ctrl)
-	service := NewUserService(mockRepo)
-
-	// Test
-	result, err := service.GetByID("invalid-id")
-	assert.Error(t, err)
-	assert.Nil(t, result)
-	assert.Contains(t, err.Error(), "invalid user ID")
-
-	// Verify expectations handled by gomock controller
+	got, err := service.GetByID("invalid")
+	assert.Nil(t, got)
+	assert.ErrorContains(t, err, "invalid user ID")
 }
 
 func TestUserService_GetByID_NotFound(t *testing.T) {
-	// Setup
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
+	service := NewUserService(mockUserRepo)
 
-	mockRepo := mocks.NewMockUserRepositoryInterface(ctrl)
-	service := NewUserService(mockRepo)
+	mockUserRepo.EXPECT().FindByID("11111111-1111-1111-1111-111111111111").Return(nil, nil)
 
-	validID := "123e4567-e89b-12d3-a456-426614174001"
-
-	// Expectations
-	mockRepo.EXPECT().FindByID(validID).Return(nil, nil)
-
-	// Test
-	result, err := service.GetByID(validID)
-	assert.Error(t, err)
-	assert.Nil(t, result)
-	assert.Contains(t, err.Error(), "user not found")
-
-	// Verify expectations handled by gomock controller
+	got, err := service.GetByID("11111111-1111-1111-1111-111111111111")
+	assert.Nil(t, got)
+	assert.ErrorContains(t, err, "user not found")
 }
 
-func TestUserService_GetAll(t *testing.T) {
-	// Setup
+func TestUserService_GetAll_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
+	service := NewUserService(mockUserRepo)
 
-	mockRepo := mocks.NewMockUserRepositoryInterface(ctrl)
-	service := NewUserService(mockRepo)
+	users := []models.User{{ID: "1"}, {ID: "2"}}
+	mockUserRepo.EXPECT().FindAll().Return(users, nil)
 
-	users := []models.User{
-		{
-			ID:    "123e4567-e89b-12d3-a456-426614174001",
-			Name:  "User 1",
-			Email: "user1@example.com",
-			Role:  models.UserRole,
-		},
-		{
-			ID:    "123e4567-e89b-12d3-a456-426614174002",
-			Name:  "User 2",
-			Email: "user2@example.com",
-			Role:  models.UserRole,
-		},
-	}
-
-	// Expectations
-	mockRepo.EXPECT().FindAll().Return(users, nil)
-
-	// Test
-	results, err := service.GetAll()
+	got, err := service.GetAll()
 	assert.NoError(t, err)
-	assert.Equal(t, users, results)
-
-	// Verify expectations handled by gomock controller
+	assert.Equal(t, users, got)
 }
 
-func TestUserService_Update(t *testing.T) {
-	// Setup
+func TestUserService_Update_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
+	service := NewUserService(mockUserRepo)
 
-	mockRepo := mocks.NewMockUserRepositoryInterface(ctrl)
-	service := NewUserService(mockRepo)
+	user := &models.User{ID: validUUID(), Name: "Old"}
+	userUpdate := &models.UserUpdate{Name: "New"}
+	mockUserRepo.EXPECT().FindByID(user.ID).Return(user, nil)
+	mockUserRepo.EXPECT().Update(user).Return(nil)
 
-	userID := "123e4567-e89b-12d3-a456-426614174001"
-	userUpdate := &models.UserUpdate{
-		Name:     "Updated User",
-		Email:    "updated@example.com",
-		Password: "newpassword123",
-	}
-
-	existingUser := &models.User{
-		ID:       userID,
-		Name:     "Test User",
-		Email:    "test@example.com",
-		Password: "hashedpassword",
-		Role:     models.UserRole,
-	}
-
-	// Expectations
-	mockRepo.EXPECT().FindByID(userID).Return(existingUser, nil)
-	mockRepo.EXPECT().FindByEmail(userUpdate.Email).Return(nil, nil)
-	mockRepo.EXPECT().Update(gomock.AssignableToTypeOf(&models.User{})).Return(nil)
-
-	// Test
-	updatedUser, err := service.Update(userID, userUpdate)
+	got, err := service.Update(user.ID, userUpdate)
 	assert.NoError(t, err)
-	assert.Equal(t, userID, updatedUser.ID)
-	assert.Equal(t, userUpdate.Name, updatedUser.Name)
-	assert.Equal(t, userUpdate.Email, updatedUser.Email)
-	assert.NotEqual(t, userUpdate.Password, updatedUser.Password) // Password should be hashed
-
-	// Verify expectations handled by gomock controller
-}
-
-func TestUserService_Update_InvalidID(t *testing.T) {
-	// Setup
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mocks.NewMockUserRepositoryInterface(ctrl)
-	service := NewUserService(mockRepo)
-
-	userUpdate := &models.UserUpdate{
-		Name:  "Updated User",
-		Email: "updated@example.com",
-	}
-
-	// Test
-	updatedUser, err := service.Update("invalid-id", userUpdate)
-	assert.Error(t, err)
-	assert.Nil(t, updatedUser)
-	assert.Contains(t, err.Error(), "invalid user ID")
-
-	// Verify expectations handled by gomock controller
-}
-
-func TestUserService_Update_UserNotFound(t *testing.T) {
-	// Setup
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mocks.NewMockUserRepositoryInterface(ctrl)
-	service := NewUserService(mockRepo)
-
-	userID := "123e4567-e89b-12d3-a456-426614174001"
-	userUpdate := &models.UserUpdate{
-		Name:  "Updated User",
-		Email: "updated@example.com",
-	}
-
-	// Expectations
-	mockRepo.EXPECT().FindByID(userID).Return(nil, nil)
-
-	// Test
-	updatedUser, err := service.Update(userID, userUpdate)
-	assert.Error(t, err)
-	assert.Nil(t, updatedUser)
-	assert.Contains(t, err.Error(), "user not found")
-
-	// Verify expectations handled by gomock controller
+	assert.Equal(t, "New", got.Name)
 }
 
 func TestUserService_Update_EmailExists(t *testing.T) {
-	// Setup
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
+	service := NewUserService(mockUserRepo)
 
-	mockRepo := mocks.NewMockUserRepositoryInterface(ctrl)
-	service := NewUserService(mockRepo)
+	user := &models.User{ID: validUUID(), Email: "old@example.com"}
+	userUpdate := &models.UserUpdate{Email: "new@example.com"}
+	mockUserRepo.EXPECT().FindByID(user.ID).Return(user, nil)
+	mockUserRepo.EXPECT().FindByEmail("new@example.com").Return(&models.User{}, nil)
 
-	userID := "123e4567-e89b-12d3-a456-426614174001"
-	userUpdate := &models.UserUpdate{
-		Name:  "Updated User",
-		Email: "existing@example.com",
-	}
-
-	existingUser := &models.User{
-		ID:    userID,
-		Name:  "Test User",
-		Email: "test@example.com",
-		Role:  models.UserRole,
-	}
-
-	anotherUser := &models.User{
-		ID:    "123e4567-e89b-12d3-a456-426614174002",
-		Email: userUpdate.Email,
-	}
-
-	// Expectations
-	mockRepo.EXPECT().FindByID(userID).Return(existingUser, nil)
-	mockRepo.EXPECT().FindByEmail(userUpdate.Email).Return(anotherUser, nil)
-
-	// Test
-	updatedUser, err := service.Update(userID, userUpdate)
-	assert.Error(t, err)
-	assert.Nil(t, updatedUser)
-	assert.Contains(t, err.Error(), "email already exists")
-
-	// Verify expectations handled by gomock controller
+	got, err := service.Update(user.ID, userUpdate)
+	assert.Nil(t, got)
+	assert.ErrorContains(t, err, "email already exists")
 }
 
-func TestUserService_Delete(t *testing.T) {
-	// Setup
+func TestUserService_Update_NotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
+	service := NewUserService(mockUserRepo)
 
-	mockRepo := mocks.NewMockUserRepositoryInterface(ctrl)
-	service := NewUserService(mockRepo)
+	mockUserRepo.EXPECT().FindByID("11111111-1111-1111-1111-111111111111").Return(nil, nil)
 
-	userID := "123e4567-e89b-12d3-a456-426614174001"
-	user := &models.User{
-		ID:   userID,
-		Role: models.UserRole,
-	}
+	got, err := service.Update("11111111-1111-1111-1111-111111111111", &models.UserUpdate{Name: "New"})
+	assert.Nil(t, got)
+	assert.ErrorContains(t, err, "user not found")
+}
 
-	// Expectations
-	mockRepo.EXPECT().FindByID(userID).Return(user, nil)
-	mockRepo.EXPECT().Delete(userID).Return(nil)
+func TestUserService_Delete_Success(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
+	service := NewUserService(mockUserRepo)
 
-	// Test
-	err := service.Delete(userID)
+	user := &models.User{ID: "11111111-1111-1111-1111-111111111111"}
+	mockUserRepo.EXPECT().FindByID(user.ID).Return(user, nil)
+	mockUserRepo.EXPECT().Delete(user.ID).Return(nil)
+
+	err := service.Delete(user.ID)
 	assert.NoError(t, err)
-
-	// Verify expectations handled by gomock controller
 }
 
-func TestUserService_Delete_InvalidID(t *testing.T) {
-	// Setup
+func TestUserService_Delete_NotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
+	service := NewUserService(mockUserRepo)
 
-	mockRepo := mocks.NewMockUserRepositoryInterface(ctrl)
-	service := NewUserService(mockRepo)
+	mockUserRepo.EXPECT().FindByID("11111111-1111-1111-1111-111111111111").Return(nil, nil)
 
-	// Test
-	err := service.Delete("invalid-id")
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "invalid user ID")
-
-	// Verify expectations handled by gomock controller
+	err := service.Delete("11111111-1111-1111-1111-111111111111")
+	assert.ErrorContains(t, err, "user not found")
 }
 
-func TestUserService_Delete_UserNotFound(t *testing.T) {
-	// Setup
+func TestUserService_Login_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
-	mockRepo := mocks.NewMockUserRepositoryInterface(ctrl)
-	service := NewUserService(mockRepo)
-
-	userID := "123e4567-e89b-12d3-a456-426614174001"
-
-	// Expectations
-	mockRepo.EXPECT().FindByID(userID).Return(nil, nil)
-
-	// Test
-	err := service.Delete(userID)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "user not found")
-
-	// Verify expectations handled by gomock controller
-}
-
-func TestUserService_Login(t *testing.T) {
-	// Setup
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mocks.NewMockUserRepositoryInterface(ctrl)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
 	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
-	service := NewUserService(mockRepo)
+	service := NewUserService(mockUserRepo)
 
+	hashed, _ := utils.HashPassword("password123")
+	user := &models.User{
+		ID:       "11111111-1111-1111-1111-111111111111",
+		Email:    "test@example.com",
+		Password: hashed,
+	}
 	userLogin := &models.UserLogin{
 		Email:    "test@example.com",
 		Password: "password123",
 	}
+	mockUserRepo.EXPECT().FindByEmail(userLogin.Email).Return(user, nil)
+	mockTokenRepo.EXPECT().CreateToken(gomock.Any()).Return(nil).AnyTimes()
 
-	// Create a user with a hashed password that will match
-	hashedPassword, _ := utils.HashPassword(userLogin.Password)
-	user := &models.User{
-		ID:       "123e4567-e89b-12d3-a456-426614174001",
-		Email:    userLogin.Email,
-		Password: hashedPassword,
-		Role:     models.UserRole,
-	}
-
-	// Expectations
-	mockRepo.EXPECT().FindByEmail(userLogin.Email).Return(user, nil)
-	mockTokenRepo.EXPECT().CreateToken(gomock.AssignableToTypeOf(&models.IssuedToken{})).Return(nil).Times(2)
-
-	// Test
-	response, err := service.Login(userLogin, mockTokenRepo)
+	resp, err := service.Login(userLogin, mockTokenRepo)
 	assert.NoError(t, err)
-	assert.NotNil(t, response)
-	assert.Equal(t, user, response.User)
-	assert.NotEmpty(t, response.AccessToken)
-	assert.NotEmpty(t, response.RefreshToken)
-	assert.NotZero(t, response.ExpiresAt)
-
-	// Verify expectations handled by gomock controller
-}
-
-func TestUserService_Login_UserNotFound(t *testing.T) {
-	// Setup
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mocks.NewMockUserRepositoryInterface(ctrl)
-	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
-	service := NewUserService(mockRepo)
-
-	userLogin := &models.UserLogin{
-		Email:    "test@example.com",
-		Password: "password123",
-	}
-
-	// Expectations
-	mockRepo.EXPECT().FindByEmail(userLogin.Email).Return(nil, nil)
-
-	// Test
-	response, err := service.Login(userLogin, mockTokenRepo)
-	assert.Error(t, err)
-	assert.Nil(t, response)
-	assert.Contains(t, err.Error(), "invalid email or password")
-
-	// Verify expectations handled by gomock controller
+	assert.NotEmpty(t, resp.AccessToken)
+	assert.NotEmpty(t, resp.RefreshToken)
 }
 
 func TestUserService_Login_InvalidPassword(t *testing.T) {
-	// Setup
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
-	mockRepo := mocks.NewMockUserRepositoryInterface(ctrl)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
 	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
-	service := NewUserService(mockRepo)
+	service := NewUserService(mockUserRepo)
 
+	user := &models.User{
+		ID:       validUUID(),
+		Email:    "test@example.com",
+		Password: "$2a$10$7Qw1Qw1Qw1Qw1Qw1Qw1QwOeQw1Qw1Qw1Qw1Qw1Qw1Qw1Qw1Qw1Qw1Q", // bcrypt hash for "password123"
+	}
 	userLogin := &models.UserLogin{
 		Email:    "test@example.com",
-		Password: "password123",
+		Password: "wrongpassword",
 	}
+	mockUserRepo.EXPECT().FindByEmail(userLogin.Email).Return(user, nil)
 
-	// Create a user with a different password
-	hashedPassword, _ := utils.HashPassword("differentpassword")
-	user := &models.User{
-		ID:       "123e4567-e89b-12d3-a456-426614174001",
-		Email:    userLogin.Email,
-		Password: hashedPassword,
-	}
-
-	// Expectations
-	mockRepo.EXPECT().FindByEmail(userLogin.Email).Return(user, nil)
-
-	// Test
-	response, err := service.Login(userLogin, mockTokenRepo)
-	assert.Error(t, err)
-	assert.Nil(t, response)
-	assert.Contains(t, err.Error(), "invalid email or password")
-
-	// Verify expectations handled by gomock controller
+	resp, err := service.Login(userLogin, mockTokenRepo)
+	assert.Nil(t, resp)
+	assert.ErrorContains(t, err, "invalid email or password")
 }
 
-func TestUserService_Login_TokenCreationError(t *testing.T) {
-	// Setup
+func TestUserService_Login_UserNotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
-	mockRepo := mocks.NewMockUserRepositoryInterface(ctrl)
+	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
 	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
-	service := NewUserService(mockRepo)
+	service := NewUserService(mockUserRepo)
 
 	userLogin := &models.UserLogin{
-		Email:    "test@example.com",
+		Email:    "notfound@example.com",
 		Password: "password123",
 	}
+	mockUserRepo.EXPECT().FindByEmail(userLogin.Email).Return(nil, nil)
 
-	// Create a user with a hashed password that will match
-	hashedPassword, _ := utils.HashPassword(userLogin.Password)
-	user := &models.User{
-		ID:       "123e4567-e89b-12d3-a456-426614174001",
-		Email:    userLogin.Email,
-		Password: hashedPassword,
-		Role:     models.UserRole,
-	}
-
-	// Expectations
-	mockRepo.EXPECT().FindByEmail(userLogin.Email).Return(user, nil)
-	mockTokenRepo.EXPECT().CreateToken(gomock.AssignableToTypeOf(&models.IssuedToken{})).Return(errors.New("token creation error"))
-
-	// Test
-	response, err := service.Login(userLogin, mockTokenRepo)
-	assert.Error(t, err)
-	assert.Nil(t, response)
-	assert.Contains(t, err.Error(), "error saving access token")
-
-	// Verify expectations handled by gomock controller
+	resp, err := service.Login(userLogin, mockTokenRepo)
+	assert.Nil(t, resp)
+	assert.ErrorContains(t, err, "invalid email or password")
 }

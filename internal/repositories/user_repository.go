@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/SimpleBookRental/backend/internal/models"
 	"gorm.io/gorm"
@@ -10,6 +11,20 @@ import (
 // UserRepository handles database operations for users
 type UserRepository struct {
 	db *gorm.DB
+}
+
+// GetDB returns the database connection
+func (r *UserRepository) GetDB() interface{} {
+	return r.db
+}
+
+// WithTx returns a new UserRepository with the given transaction
+func (r *UserRepository) WithTx(tx interface{}) (UserRepositoryInterface, error) {
+	db, ok := tx.(*gorm.DB)
+	if !ok {
+		return nil, fmt.Errorf("invalid transaction type")
+	}
+	return &UserRepository{db: db}, nil
 }
 
 // Ensure UserRepository implements UserRepositoryInterface

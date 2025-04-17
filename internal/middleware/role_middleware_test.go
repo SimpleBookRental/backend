@@ -1,6 +1,8 @@
+// Unit tests for role-based middleware using testify.
 package middleware
 
 import (
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -9,146 +11,113 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRequireRole(t *testing.T) {
-	// Test with required role matching
-	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Set("role", "ADMIN")
-
-	middleware := RequireRole("ADMIN")
-	middleware(c)
-
-	// If middleware calls c.Next(), it means it passed
-	assert.False(t, c.IsAborted())
-
-	// Test with required role not matching
-	w = httptest.NewRecorder()
-	c, _ = gin.CreateTestContext(w)
-	c.Set("role", "USER")
-
-	middleware = RequireRole("ADMIN")
-	middleware(c)
-
-	// If middleware calls c.Abort(), it means it failed
-	assert.True(t, c.IsAborted())
-
-	// Test with role not in context
-	w = httptest.NewRecorder()
-	c, _ = gin.CreateTestContext(w)
-
-	middleware = RequireRole("ADMIN")
-	middleware(c)
-
-	// If middleware calls c.Abort(), it means it failed
-	assert.True(t, c.IsAborted())
+func setupGinWithRole(mw gin.HandlerFunc, inject func(*gin.Context)) *gin.Engine {
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	r.Use(func(c *gin.Context) {
+		if inject != nil {
+			inject(c)
+		}
+		c.Next()
+	})
+	r.Use(mw)
+	r.GET("/protected", func(c *gin.Context) {
+		c.JSON(200, gin.H{"success": true})
+	})
+	return r
 }
 
-func TestRequireAdmin(t *testing.T) {
-	// Test with admin role
+func TestRequireRole_Success(t *testing.T) {
+	router := setupGinWithRole(RequireRole(models.AdminRole), func(c *gin.Context) {
+		c.Set("role", models.AdminRole)
+	})
+	req, _ := http.NewRequest("GET", "/protected", nil)
 	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Set("role", models.AdminRole)
-
-	middleware := RequireAdmin()
-	middleware(c)
-
-	// If middleware calls c.Next(), it means it passed
-	assert.False(t, c.IsAborted())
-
-	// Test with non-admin role
-	w = httptest.NewRecorder()
-	c, _ = gin.CreateTestContext(w)
-	c.Set("role", models.UserRole)
-
-	middleware = RequireAdmin()
-	middleware(c)
-
-	// If middleware calls c.Abort(), it means it failed
-	assert.True(t, c.IsAborted())
+	router.ServeHTTP(w, req)
+	assert.Equal(t, 200, w.Code)
 }
 
-func TestRequireUser(t *testing.T) {
-	// Test with user role
+func TestRequireRole_Forbidden(t *testing.T) {
+	router := setupGinWithRole(RequireRole(models.AdminRole), func(c *gin.Context) {
+		c.Set("role", models.UserRole)
+	})
+	req, _ := http.NewRequest("GET", "/protected", nil)
 	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Set("role", models.UserRole)
-
-	middleware := RequireUser()
-	middleware(c)
-
-	// If middleware calls c.Next(), it means it passed
-	assert.False(t, c.IsAborted())
-
-	// Test with non-user role
-	w = httptest.NewRecorder()
-	c, _ = gin.CreateTestContext(w)
-	c.Set("role", models.AdminRole)
-
-	middleware = RequireUser()
-	middleware(c)
-
-	// If middleware calls c.Abort(), it means it failed
-	assert.True(t, c.IsAborted())
+	router.ServeHTTP(w, req)
+	assert.Equal(t, 403, w.Code)
+	assert.Contains(t, w.Body.String(), "insufficient permissions")
 }
 
-func TestRequireAdminOrSameUser(t *testing.T) {
-	// Test with admin role
+func TestRequireRole_MissingRole(t *testing.T) {
+	router := setupGinWithRole(RequireRole(models.AdminRole), nil)
+	req, _ := http.NewRequest("GET", "/protected", nil)
 	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Set("role", models.AdminRole)
-	c.Set("user_id", "123")
+	router.ServeHTTP(w, req)
+	assert.Equal(t, 401, w.Code)
+	assert.Contains(t, w.Body.String(), "role not found")
+}
 
-	middleware := RequireAdminOrSameUser()
-	middleware(c)
+func TestRequireAdmin_Success(t *testing.T) {
+	router := setupGinWithRole(RequireAdmin(), func(c *gin.Context) {
+		c.Set("role", models.AdminRole)
+	})
+	req, _ := http.NewRequest("GET", "/protected", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	assert.Equal(t, 200, w.Code)
+}
 
-	// If middleware calls c.Next(), it means it passed
-	assert.False(t, c.IsAborted())
+func TestRequireUser_Success(t *testing.T) {
+	router := setupGinWithRole(RequireUser(), func(c *gin.Context) {
+		c.Set("role", models.UserRole)
+	})
+	req, _ := http.NewRequest("GET", "/protected", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	assert.Equal(t, 200, w.Code)
+}
 
-	// Test with same user
-	w = httptest.NewRecorder()
-	c, _ = gin.CreateTestContext(w)
-	c.Set("role", models.UserRole)
-	c.Set("user_id", "123")
-	c.Params = []gin.Param{{Key: "id", Value: "123"}}
+func TestRequireAdminOrSameUser_Admin(t *testing.T) {
+	router := setupGinWithRole(RequireAdminOrSameUser(), func(c *gin.Context) {
+		c.Set("role", models.AdminRole)
+		c.Set("user_id", "user-1")
+	})
+	req, _ := http.NewRequest("GET", "/protected", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	assert.Equal(t, 200, w.Code)
+}
 
-	middleware = RequireAdminOrSameUser()
-	middleware(c)
+func TestRequireAdminOrSameUser_SameUser(t *testing.T) {
+	router := setupGinWithRole(RequireAdminOrSameUser(), func(c *gin.Context) {
+		c.Set("role", models.UserRole)
+		c.Set("user_id", "user-1")
+		c.Params = gin.Params{{Key: "id", Value: "user-1"}}
+	})
+	req, _ := http.NewRequest("GET", "/protected?id=user-1", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	assert.Equal(t, 200, w.Code)
+}
 
-	// If middleware calls c.Next(), it means it passed
-	assert.False(t, c.IsAborted())
+func TestRequireAdminOrSameUser_Forbidden(t *testing.T) {
+	router := setupGinWithRole(RequireAdminOrSameUser(), func(c *gin.Context) {
+		c.Set("role", models.UserRole)
+		c.Set("user_id", "user-1")
+		c.Params = gin.Params{{Key: "id", Value: "user-2"}}
+	})
+	req, _ := http.NewRequest("GET", "/protected?id=user-2", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	assert.Equal(t, 403, w.Code)
+	assert.Contains(t, w.Body.String(), "insufficient permissions")
+}
 
-	// Test with different user
-	w = httptest.NewRecorder()
-	c, _ = gin.CreateTestContext(w)
-	c.Set("role", models.UserRole)
-	c.Set("user_id", "456")
-	c.Params = []gin.Param{{Key: "id", Value: "123"}}
-
-	middleware = RequireAdminOrSameUser()
-	middleware(c)
-
-	// If middleware calls c.Abort(), it means it failed
-	assert.True(t, c.IsAborted())
-
-	// Test with missing role
-	w = httptest.NewRecorder()
-	c, _ = gin.CreateTestContext(w)
-	c.Set("user_id", "123")
-
-	middleware = RequireAdminOrSameUser()
-	middleware(c)
-
-	// If middleware calls c.Abort(), it means it failed
-	assert.True(t, c.IsAborted())
-
-	// Test with missing user_id
-	w = httptest.NewRecorder()
-	c, _ = gin.CreateTestContext(w)
-	c.Set("role", models.UserRole)
-
-	middleware = RequireAdminOrSameUser()
-	middleware(c)
-
-	// If middleware calls c.Abort(), it means it failed
-	assert.True(t, c.IsAborted())
+func TestRequireAdminOrSameUser_MissingContext(t *testing.T) {
+	router := setupGinWithRole(RequireAdminOrSameUser(), nil)
+	req, _ := http.NewRequest("GET", "/protected", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	assert.Equal(t, 401, w.Code)
+	assert.Contains(t, w.Body.String(), "user information not found")
 }

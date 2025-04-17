@@ -17,7 +17,18 @@ func NewBookController(bookService services.BookServiceInterface) *BookControlle
 	return &BookController{bookService: bookService}
 }
 
-// Create handles the creation of a new book
+//
+// CreateBook godoc
+// @Summary      Create book
+// @Description  Create a new book
+// @Tags         Books
+// @Accept       json
+// @Produce      json
+// @Param        book  body      models.BookCreate  true  "Book create payload"
+// @Success      201   {object}  models.Book
+// @Failure      400   {object}  models.ErrorResponse
+// @Router       /api/v1/books [post]
+// @Security     BearerAuth
 func (c *BookController) Create(ctx *gin.Context) {
 	var bookCreate models.BookCreate
 	if err := ctx.ShouldBindJSON(&bookCreate); err != nil {
@@ -52,7 +63,17 @@ func (c *BookController) Create(ctx *gin.Context) {
 	utils.Created(ctx, "Book created successfully", book)
 }
 
-// GetByID handles getting a book by ID
+//
+// GetBookByID godoc
+// @Summary      Get book by ID
+// @Description  Get a book by its ID
+// @Tags         Books
+// @Produce      json
+// @Param        id   path      string  true  "Book ID"
+// @Success      200  {object}  models.Book
+// @Failure      404  {object}  models.ErrorResponse
+// @Router       /api/v1/books/{id} [get]
+// @Security     BearerAuth
 func (c *BookController) GetByID(ctx *gin.Context) {
 	id := ctx.Param("id")
 
@@ -81,7 +102,16 @@ func (c *BookController) GetByID(ctx *gin.Context) {
 	utils.OK(ctx, "Book retrieved successfully", book)
 }
 
-// GetAll handles getting all books
+//
+// GetAllBooks godoc
+// @Summary      Get all books
+// @Description  Get all books
+// @Tags         Books
+// @Produce      json
+// @Success      200  {array}   models.Book
+// @Failure      500  {object}  models.ErrorResponse
+// @Router       /api/v1/books [get]
+// @Security     BearerAuth
 func (c *BookController) GetAll(ctx *gin.Context) {
 	// Get user ID and role from context
 	userID, userIDExists := ctx.Get("user_id")
@@ -112,7 +142,20 @@ func (c *BookController) GetAll(ctx *gin.Context) {
 	utils.OK(ctx, "Books retrieved successfully", books)
 }
 
-// Update handles updating a book
+//
+// UpdateBook godoc
+// @Summary      Update book
+// @Description  Update a book by ID
+// @Tags         Books
+// @Accept       json
+// @Produce      json
+// @Param        id    path      string              true  "Book ID"
+// @Param        book  body      models.BookUpdate   true  "Book update payload"
+// @Success      200   {object}  models.Book
+// @Failure      400   {object}  models.ErrorResponse
+// @Failure      404   {object}  models.ErrorResponse
+// @Router       /api/v1/books/{id} [put]
+// @Security     BearerAuth
 func (c *BookController) Update(ctx *gin.Context) {
 	id := ctx.Param("id")
 
@@ -157,7 +200,18 @@ func (c *BookController) Update(ctx *gin.Context) {
 	utils.OK(ctx, "Book updated successfully", book)
 }
 
-// Delete handles deleting a book
+//
+// DeleteBook godoc
+// @Summary      Delete book
+// @Description  Delete a book by ID
+// @Tags         Books
+// @Produce      json
+// @Param        id   path      string  true  "Book ID"
+// @Success      200  {object}  models.SuccessResponse
+// @Failure      400  {object}  models.ErrorResponse
+// @Failure      404  {object}  models.ErrorResponse
+// @Router       /api/v1/books/{id} [delete]
+// @Security     BearerAuth
 func (c *BookController) Delete(ctx *gin.Context) {
 	id := ctx.Param("id")
 

@@ -14,6 +14,7 @@ func SetupRoutes(
 	userController *controllers.UserController,
 	bookController *controllers.BookController,
 	tokenController *controllers.TokenController,
+	bookUserController *controllers.BookUserController,
 	tokenRepo *repositories.TokenRepository,
 	userRepo *repositories.UserRepository,
 ) {
@@ -60,6 +61,16 @@ func SetupRoutes(
 
 				// All authenticated users can delete a book (filtered by role in controller)
 				books.DELETE("/:id", bookController.Delete)
+
+				// Book-User operations
+				books.POST("/:id/transfer", bookUserController.TransferBookOwnership)
+			}
+
+			// Book-User routes
+			bookUsers := auth.Group("book-users")
+			{
+				// Create a book with user
+				bookUsers.POST("", bookUserController.CreateBookWithUser)
 			}
 
 		}

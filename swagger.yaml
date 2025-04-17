@@ -1,830 +1,717 @@
-openapi: 3.0.0
+basePath: /api/v1
+definitions:
+  github_com_SimpleBookRental_backend_internal_models.Book:
+    description: Book entity
+    properties:
+      author:
+        description: Book author
+        example: F. Scott Fitzgerald
+        type: string
+      created_at:
+        description: Created at
+        example: "2024-04-17T12:00:00Z"
+        type: string
+      description:
+        description: Book description
+        example: A classic novel
+        type: string
+      id:
+        description: Book ID
+        example: b1a2c3d4-e5f6-7890-abcd-1234567890ab
+        type: string
+      isbn:
+        description: Book ISBN
+        example: 978-1234567890
+        type: string
+      title:
+        description: Book title
+        example: The Great Gatsby
+        type: string
+      updated_at:
+        description: Updated at
+        example: "2024-04-17T12:00:00Z"
+        type: string
+      user:
+        allOf:
+        - $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.User'
+        description: Owner user
+      user_id:
+        description: Owner user ID
+        example: b1a2c3d4-e5f6-7890-abcd-1234567890ab
+        type: string
+    type: object
+  github_com_SimpleBookRental_backend_internal_models.BookCreate:
+    description: Book create request
+    properties:
+      author:
+        description: Book author
+        example: F. Scott Fitzgerald
+        type: string
+      description:
+        description: Book description
+        example: A classic novel
+        type: string
+      isbn:
+        description: Book ISBN
+        example: 978-1234567890
+        type: string
+      title:
+        description: Book title
+        example: The Great Gatsby
+        type: string
+      user_id:
+        description: Owner user ID
+        example: b1a2c3d4-e5f6-7890-abcd-1234567890ab
+        type: string
+    required:
+    - author
+    - isbn
+    - title
+    type: object
+  github_com_SimpleBookRental_backend_internal_models.BookCreateRequest:
+    description: Book create with user request
+    properties:
+      author:
+        description: Book author
+        example: F. Scott Fitzgerald
+        type: string
+      description:
+        description: Book description
+        example: A classic novel
+        type: string
+      isbn:
+        description: Book ISBN
+        example: 978-1234567890
+        type: string
+      title:
+        description: Book title
+        example: The Great Gatsby
+        type: string
+    type: object
+  github_com_SimpleBookRental_backend_internal_models.BookTransferRequest:
+    description: Book transfer request
+    properties:
+      from_user_id:
+        description: From user ID
+        example: b1a2c3d4-e5f6-7890-abcd-1234567890ab
+        type: string
+      to_user_id:
+        description: To user ID
+        example: c2b3a4d5-e6f7-8901-bcda-2345678901bc
+        type: string
+    required:
+    - from_user_id
+    - to_user_id
+    type: object
+  github_com_SimpleBookRental_backend_internal_models.BookUpdate:
+    description: Book update request
+    properties:
+      author:
+        description: Book author
+        example: F. Scott Fitzgerald
+        type: string
+      description:
+        description: Book description
+        example: A classic novel
+        type: string
+      isbn:
+        description: Book ISBN
+        example: 978-1234567890
+        type: string
+      title:
+        description: Book title
+        example: The Great Gatsby
+        type: string
+      user_id:
+        description: Owner user ID
+        example: b1a2c3d4-e5f6-7890-abcd-1234567890ab
+        type: string
+    type: object
+  github_com_SimpleBookRental_backend_internal_models.ErrorResponse:
+    description: Error response
+    properties:
+      error:
+        description: Error details
+        example: Validation failed
+        type: string
+      message:
+        description: Error message
+        example: Error message
+        type: string
+      success:
+        description: Success flag
+        example: false
+        type: boolean
+    type: object
+  github_com_SimpleBookRental_backend_internal_models.LoginResponse:
+    description: Login response
+    properties:
+      access_token:
+        description: JWT access token
+        example: jwt-token
+        type: string
+      expires_at:
+        description: Expiry timestamp
+        example: 1713345600
+        type: integer
+      refresh_token:
+        description: Refresh token
+        example: refresh-token
+        type: string
+      user:
+        allOf:
+        - $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.User'
+        description: User info
+    type: object
+  github_com_SimpleBookRental_backend_internal_models.LogoutRequest:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
+  github_com_SimpleBookRental_backend_internal_models.RefreshTokenRequest:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
+  github_com_SimpleBookRental_backend_internal_models.RefreshTokenResponse:
+    properties:
+      access_token:
+        type: string
+      expires_at:
+        type: integer
+      refresh_token:
+        type: string
+    type: object
+  github_com_SimpleBookRental_backend_internal_models.SuccessResponse:
+    description: Success response
+    properties:
+      data:
+        description: Optional data
+      message:
+        description: Success message
+        example: Operation successful
+        type: string
+      success:
+        description: Success flag
+        example: true
+        type: boolean
+    type: object
+  github_com_SimpleBookRental_backend_internal_models.User:
+    description: User entity
+    properties:
+      books:
+        description: Books owned by user
+        items:
+          $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.Book'
+        type: array
+      created_at:
+        description: Created at
+        example: "2024-04-17T12:00:00Z"
+        type: string
+      email:
+        description: User email
+        example: john@example.com
+        type: string
+      id:
+        description: User ID
+        example: b1a2c3d4-e5f6-7890-abcd-1234567890ab
+        type: string
+      name:
+        description: User name
+        example: John Doe
+        type: string
+      role:
+        description: User role (ADMIN/USER)
+        example: USER
+        type: string
+      updated_at:
+        description: Updated at
+        example: "2024-04-17T12:00:00Z"
+        type: string
+    type: object
+  github_com_SimpleBookRental_backend_internal_models.UserCreate:
+    description: User create request
+    properties:
+      email:
+        description: User email
+        example: john@example.com
+        type: string
+      name:
+        description: User name
+        example: John Doe
+        type: string
+      password:
+        description: User password
+        example: secret123
+        minLength: 6
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  github_com_SimpleBookRental_backend_internal_models.UserLogin:
+    description: User login request
+    properties:
+      email:
+        description: User email
+        example: john@example.com
+        type: string
+      password:
+        description: User password
+        example: secret123
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  github_com_SimpleBookRental_backend_internal_models.UserUpdate:
+    description: User update request
+    properties:
+      email:
+        description: User email
+        example: john@example.com
+        type: string
+      name:
+        description: User name
+        example: John Doe
+        type: string
+      password:
+        description: User password
+        example: secret123
+        minLength: 6
+        type: string
+    type: object
 info:
+  contact: {}
+  description: RESTful API for book rental system (Go, Gin, GORM, Clean Architecture)
   title: Simple Book Rental API
-  description: A RESTful API for a simple book rental system built with Go, Gin, and GORM.
   version: 1.0.0
-  contact:
-    name: Simple Book Rental Team
-
-servers:
-  - url: http://localhost:3000
-    description: Local development server
-
-security:
-  - bearerAuth: []
-
-tags:
-  - name: Users
-    description: User management operations
-  - name: Books
-    description: Book management operations
-  - name: Authentication
-    description: Authentication operations
-
 paths:
-  /api/v1/users:
+  /api/v1/book-users:
     post:
-      tags:
-        - Users
-      summary: Create a new user
-      description: Creates a new user in the system
-      operationId: createUser
-      requestBody:
+      consumes:
+      - application/json
+      description: Create a book and associate it with a user
+      parameters:
+      - description: Book create with user payload
+        in: body
+        name: request
         required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserCreate'
+        schema:
+          $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.BookCreateRequest'
+      produces:
+      - application/json
       responses:
-        '201':
-          description: User created successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserResponse'
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    get:
-      tags:
-        - Users
-      summary: Get all users
-      description: Returns a list of all users
-      operationId: getAllUsers
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: Users retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UsersResponse'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /api/v1/users/{id}:
-    get:
-      tags:
-        - Users
-      summary: Get a user by ID
-      description: Returns a user by ID
-      operationId: getUserById
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          description: User ID
-          required: true
+        "201":
+          description: Created
           schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: User retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserResponse'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: User not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    put:
-      tags:
-        - Users
-      summary: Update a user
-      description: Updates a user by ID
-      operationId: updateUser
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          description: User ID
-          required: true
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.Book'
+        "400":
+          description: Bad Request
           schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserUpdate'
-      responses:
-        '200':
-          description: User updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserResponse'
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: User not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    delete:
-      tags:
-        - Users
-      summary: Delete a user
-      description: Deletes a user by ID
-      operationId: deleteUser
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          description: User ID
-          required: true
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: User deleted successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SuccessResponse'
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: User not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create book with user
+      tags:
+      - Book-User Operations
   /api/v1/books:
-    post:
-      tags:
-        - Books
-      summary: Create a new book
-      description: Creates a new book in the system
-      operationId: createBook
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/BookCreate'
-      responses:
-        '201':
-          description: Book created successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BookResponse'
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
     get:
-      tags:
-        - Books
+      description: Get all books
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.Book'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Get all books
-      description: Returns a list of all books
-      operationId: getAllBooks
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: Books retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BooksResponse'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /api/v1/books/{id}:
-    get:
       tags:
-        - Books
-      summary: Get a book by ID
-      description: Returns a book by ID
-      operationId: getBookById
-      security:
-        - bearerAuth: []
+      - Books
+    post:
+      consumes:
+      - application/json
+      description: Create a new book
       parameters:
-        - name: id
-          in: path
-          description: Book ID
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Book retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BookResponse'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Book not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    put:
-      tags:
-        - Books
-      summary: Update a book
-      description: Updates a book by ID
-      operationId: updateBook
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          description: Book ID
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
+      - description: Book create payload
+        in: body
+        name: book
         required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/BookUpdate'
+        schema:
+          $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.BookCreate'
+      produces:
+      - application/json
       responses:
-        '200':
-          description: Book updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BookResponse'
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Book not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.Book'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create book
+      tags:
+      - Books
+  /api/v1/books/{id}:
     delete:
-      tags:
-        - Books
-      summary: Delete a book
-      description: Deletes a book by ID
-      operationId: deleteBook
-      security:
-        - bearerAuth: []
+      description: Delete a book by ID
       parameters:
-        - name: id
-          in: path
-          description: Book ID
-          required: true
-          schema:
-            type: string
-            format: uuid
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
       responses:
-        '200':
-          description: Book deleted successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SuccessResponse'
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Book not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /api/v1/user-books/{user_id}:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete book
+      tags:
+      - Books
     get:
-      tags:
-        - Books
-      summary: Get books by user ID
-      description: Returns a list of books by user ID
-      operationId: getBooksByUserId
-      security:
-        - bearerAuth: []
+      description: Get a book by its ID
       parameters:
-        - name: user_id
-          in: path
-          description: User ID
-          required: true
-          schema:
-            type: string
-            format: uuid
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
       responses:
-        '200':
-          description: Books retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BooksResponse'
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.Book'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get book by ID
+      tags:
+      - Books
+    put:
+      consumes:
+      - application/json
+      description: Update a book by ID
+      parameters:
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Book update payload
+        in: body
+        name: book
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.BookUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.Book'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update book
+      tags:
+      - Books
+  /api/v1/books/{id}/transfer:
+    post:
+      consumes:
+      - application/json
+      description: Transfer a book from one user to another
+      parameters:
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Transfer request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.BookTransferRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Transfer book ownership
+      tags:
+      - Book-User Operations
   /api/v1/login:
     post:
-      tags:
-        - Authentication
+      consumes:
+      - application/json
+      description: User login
+      parameters:
+      - description: User login payload
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.UserLogin'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.ErrorResponse'
       summary: Login
-      description: Authenticates a user and returns access and refresh tokens
-      operationId: login
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserLogin'
-      responses:
-        '200':
-          description: Login successful
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/LoginResponse'
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /api/v1/refresh-token:
-    post:
       tags:
-        - Authentication
-      summary: Refresh token
-      description: Refreshes an access token using a refresh token
-      operationId: refreshToken
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RefreshTokenRequest'
-      responses:
-        '200':
-          description: Token refreshed successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RefreshTokenResponse'
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
+      - Auth
   /api/v1/logout:
     post:
-      tags:
-        - Authentication
-      summary: Logout
-      description: Logs out a user and revokes their tokens
-      operationId: logout
-      requestBody:
+      consumes:
+      - application/json
+      description: User logout
+      parameters:
+      - description: Logout payload
+        in: body
+        name: request
         required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LogoutRequest'
+        schema:
+          $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.LogoutRequest'
+      produces:
+      - application/json
       responses:
-        '200':
-          description: Logged out successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SuccessResponse'
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-components:
-  schemas:
-    User:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          example: "123e4567-e89b-12d3-a456-426614174000"
-        name:
-          type: string
-          example: "John Doe"
-        email:
-          type: string
-          format: email
-          example: "john@example.com"
-        role:
-          type: string
-          enum: ["ADMIN", "USER"]
-          example: "USER"
-          description: "User role (ADMIN or USER)"
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-        books:
-          type: array
-          items:
-            $ref: '#/components/schemas/Book'
-      required:
-        - id
-        - name
-        - email
-        - role
-        - created_at
-        - updated_at
-
-    UserCreate:
-      type: object
-      properties:
-        name:
-          type: string
-          example: "John Doe"
-        email:
-          type: string
-          format: email
-          example: "john@example.com"
-        password:
-          type: string
-          format: password
-          example: "password123"
-      required:
-        - name
-        - email
-        - password
-
-    UserUpdate:
-      type: object
-      properties:
-        name:
-          type: string
-          example: "John Doe"
-        email:
-          type: string
-          format: email
-          example: "john@example.com"
-        password:
-          type: string
-          format: password
-          example: "password123"
-
-    UserLogin:
-      type: object
-      properties:
-        email:
-          type: string
-          format: email
-          example: "john@example.com"
-        password:
-          type: string
-          format: password
-          example: "password123"
-      required:
-        - email
-        - password
-
-    Book:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          example: "123e4567-e89b-12d3-a456-426614174001"
-        title:
-          type: string
-          example: "The Great Gatsby"
-        author:
-          type: string
-          example: "F. Scott Fitzgerald"
-        isbn:
-          type: string
-          example: "978-3-16-148410-0"
-        description:
-          type: string
-          example: "A novel about the American Dream"
-        user_id:
-          type: string
-          format: uuid
-          example: "123e4567-e89b-12d3-a456-426614174000"
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-        user:
-          $ref: '#/components/schemas/User'
-      required:
-        - id
-        - title
-        - author
-        - isbn
-        - user_id
-        - created_at
-        - updated_at
-
-    BookCreate:
-      type: object
-      properties:
-        title:
-          type: string
-          example: "The Great Gatsby"
-        author:
-          type: string
-          example: "F. Scott Fitzgerald"
-        isbn:
-          type: string
-          example: "978-3-16-148410-0"
-        description:
-          type: string
-          example: "A novel about the American Dream"
-        user_id:
-          type: string
-          format: uuid
-          example: "123e4567-e89b-12d3-a456-426614174000"
-      required:
-        - title
-        - author
-        - isbn
-        - user_id
-
-    BookUpdate:
-      type: object
-      properties:
-        title:
-          type: string
-          example: "The Great Gatsby"
-        author:
-          type: string
-          example: "F. Scott Fitzgerald"
-        isbn:
-          type: string
-          example: "978-3-16-148410-0"
-        description:
-          type: string
-          example: "A novel about the American Dream"
-        user_id:
-          type: string
-          format: uuid
-          example: "123e4567-e89b-12d3-a456-426614174000"
-
-    LoginResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        message:
-          type: string
-          example: "Login successful"
-        data:
-          type: object
-          properties:
-            user:
-              $ref: '#/components/schemas/User'
-            access_token:
-              type: string
-              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-            refresh_token:
-              type: string
-              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-            expires_at:
-              type: integer
-              format: int64
-              example: 1625097600
-
-    RefreshTokenRequest:
-      type: object
-      properties:
-        refresh_token:
-          type: string
-          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-      required:
-        - refresh_token
-
-    RefreshTokenResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        message:
-          type: string
-          example: "Token refreshed successfully"
-        data:
-          type: object
-          properties:
-            access_token:
-              type: string
-              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-            refresh_token:
-              type: string
-              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-            expires_at:
-              type: integer
-              format: int64
-              example: 1625097600
-
-    LogoutRequest:
-      type: object
-      properties:
-        refresh_token:
-          type: string
-          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-      required:
-        - refresh_token
-
-    UserResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        message:
-          type: string
-          example: "User retrieved successfully"
-        data:
-          $ref: '#/components/schemas/User'
-
-    UsersResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        message:
-          type: string
-          example: "Users retrieved successfully"
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/User'
-
-    BookResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        message:
-          type: string
-          example: "Book retrieved successfully"
-        data:
-          $ref: '#/components/schemas/Book'
-
-    BooksResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        message:
-          type: string
-          example: "Books retrieved successfully"
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Book'
-
-    SuccessResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        message:
-          type: string
-          example: "Operation successful"
-        data:
-          type: object
-          nullable: true
-
-    ErrorResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: false
-        message:
-          type: string
-          example: "Error message"
-        error:
-          type: string
-          example: "Detailed error message"
-
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.ErrorResponse'
+      summary: Logout
+      tags:
+      - Auth
+  /api/v1/refresh-token:
+    post:
+      consumes:
+      - application/json
+      description: Refresh JWT token
+      parameters:
+      - description: Refresh token payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.RefreshTokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.ErrorResponse'
+      summary: Refresh token
+      tags:
+      - Auth
+  /api/v1/users:
+    get:
+      description: Get all users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.User'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all users
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      description: Create a new user
+      parameters:
+      - description: User create payload
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.UserCreate'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.ErrorResponse'
+      summary: Create user
+      tags:
+      - Users
+  /api/v1/users/{id}:
+    delete:
+      description: Delete a user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete user
+      tags:
+      - Users
+    get:
+      description: Get a user by their ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.User'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.ErrorResponse'
+      summary: Get user by ID
+      tags:
+      - Users
+    put:
+      consumes:
+      - application/json
+      description: Update a user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: User update payload
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.UserUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user
+      tags:
+      - Users
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

@@ -30,3 +30,9 @@ type TokenServiceInterface interface {
 	RefreshToken(request *models.RefreshTokenRequest) (*models.RefreshTokenResponse, error)
 	Logout(request *models.LogoutRequest) error
 }
+
+// BookUserServiceInterface defines the interface for book-user service
+type BookUserServiceInterface interface {
+	TransferBookOwnership(bookID, fromUserID, toUserID string) error
+	CreateBookWithUser(bookCreate *models.BookCreateRequest, userID string) (*models.Book, error)
+}

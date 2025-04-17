@@ -1,3 +1,12 @@
+//
+// @title           Simple Book Rental API
+// @version         1.0.0
+// @description     RESTful API for book rental system (Go, Gin, GORM, Clean Architecture)
+// @BasePath        /api/v1
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+
 package main
 
 import (
@@ -39,16 +48,19 @@ func main() {
 	userRepo := repositories.NewUserRepository(db)
 	bookRepo := repositories.NewBookRepository(db)
 	tokenRepo := repositories.NewTokenRepository(db)
+	txManager := repositories.NewTransactionManager(db)
 
 	// Initialize services
 	userService := services.NewUserService(userRepo)
 	bookService := services.NewBookService(bookRepo, userRepo)
 	tokenService := services.NewTokenService(tokenRepo, userRepo)
+	bookUserService := services.NewBookUserService(txManager, bookRepo, userRepo)
 
 	// Initialize controllers
 	userController := controllers.NewUserController(userService, tokenRepo)
 	bookController := controllers.NewBookController(bookService)
 	tokenController := controllers.NewTokenController(tokenService)
+	bookUserController := controllers.NewBookUserController(bookUserService)
 
 	// Initialize router
 	router := gin.Default()
@@ -64,7 +76,7 @@ func main() {
 	}))
 
 	// Setup routes
-	routes.SetupRoutes(router, userController, bookController, tokenController, tokenRepo, userRepo)
+	routes.SetupRoutes(router, userController, bookController, tokenController, bookUserController, tokenRepo, userRepo)
 
 	// Start server
 	serverAddr := fmt.Sprintf(":%s", cfg.Server.Port)

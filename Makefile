@@ -73,7 +73,15 @@ mock:
 	@mockgen -destination=internal/mocks/mock_user_repository.go -package=mocks github.com/SimpleBookRental/backend/internal/repositories UserRepositoryInterface
 	@mockgen -destination=internal/mocks/mock_book_repository.go -package=mocks github.com/SimpleBookRental/backend/internal/repositories BookRepositoryInterface
 	@mockgen -destination=internal/mocks/mock_token_repository.go -package=mocks github.com/SimpleBookRental/backend/internal/repositories TokenRepositoryInterface
+	@mockgen -destination=internal/mocks/mock_transaction_manager.go -package=mocks github.com/SimpleBookRental/backend/internal/repositories TransactionManagerInterface
 	@echo "Mocks generated successfully"
+
+# Generate swagger.yaml from annotated code using swaggo/swag
+swagger:
+	@echo "Generating swagger.yaml using swaggo/swag..."
+	@swag init -g cmd/api/main.go --outputTypes yaml --output ./ --parseDependency --parseInternal
+	@if exist ./docs/swagger.yaml move /Y ./docs/swagger.yaml ./swagger.yaml
+	@echo "swagger.yaml generated successfully"
 
 # Help
 help:
@@ -91,4 +99,5 @@ help:
 	@echo "  make test-coverage - Run tests with coverage report"
 	@echo "  make start        - Build and start services"
 	@echo "  make mock         - Generate mock files for testing"
+	@echo "  make swagger      - Generate swagger.yaml from annotated code (requires swag, see README.md)"
 	@echo "  make help         - Show this help"

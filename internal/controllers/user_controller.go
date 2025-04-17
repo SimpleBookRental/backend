@@ -19,7 +19,17 @@ func NewUserController(userService services.UserServiceInterface, tokenRepo repo
 	return &UserController{userService: userService, tokenRepo: tokenRepo}
 }
 
-// Create handles the creation of a new user
+//
+// CreateUser godoc
+// @Summary      Create user
+// @Description  Create a new user
+// @Tags         Users
+// @Accept       json
+// @Produce      json
+// @Param        user  body      models.UserCreate  true  "User create payload"
+// @Success      201   {object}  models.User
+// @Failure      400   {object}  models.ErrorResponse
+// @Router       /api/v1/users [post]
 func (c *UserController) Create(ctx *gin.Context) {
 	var userCreate models.UserCreate
 	if err := ctx.ShouldBindJSON(&userCreate); err != nil {
@@ -36,7 +46,16 @@ func (c *UserController) Create(ctx *gin.Context) {
 	utils.Created(ctx, "User created successfully", user)
 }
 
-// GetByID handles getting a user by ID
+//
+// GetUserByID godoc
+// @Summary      Get user by ID
+// @Description  Get a user by their ID
+// @Tags         Users
+// @Produce      json
+// @Param        id   path      string  true  "User ID"
+// @Success      200  {object}  models.User
+// @Failure      404  {object}  models.ErrorResponse
+// @Router       /api/v1/users/{id} [get]
 func (c *UserController) GetByID(ctx *gin.Context) {
 	id := ctx.Param("id")
 
@@ -49,7 +68,16 @@ func (c *UserController) GetByID(ctx *gin.Context) {
 	utils.OK(ctx, "User retrieved successfully", user)
 }
 
-// GetAll handles getting all users
+//
+// GetAllUsers godoc
+// @Summary      Get all users
+// @Description  Get all users
+// @Tags         Users
+// @Produce      json
+// @Success      200  {array}   models.User
+// @Failure      500  {object}  models.ErrorResponse
+// @Router       /api/v1/users [get]
+// @Security     BearerAuth
 func (c *UserController) GetAll(ctx *gin.Context) {
 	users, err := c.userService.GetAll()
 	if err != nil {
@@ -60,7 +88,20 @@ func (c *UserController) GetAll(ctx *gin.Context) {
 	utils.OK(ctx, "Users retrieved successfully", users)
 }
 
-// Update handles updating a user
+//
+// UpdateUser godoc
+// @Summary      Update user
+// @Description  Update a user by ID
+// @Tags         Users
+// @Accept       json
+// @Produce      json
+// @Param        id    path      string              true  "User ID"
+// @Param        user  body      models.UserUpdate   true  "User update payload"
+// @Success      200   {object}  models.User
+// @Failure      400   {object}  models.ErrorResponse
+// @Failure      404   {object}  models.ErrorResponse
+// @Router       /api/v1/users/{id} [put]
+// @Security     BearerAuth
 func (c *UserController) Update(ctx *gin.Context) {
 	id := ctx.Param("id")
 
@@ -79,7 +120,18 @@ func (c *UserController) Update(ctx *gin.Context) {
 	utils.OK(ctx, "User updated successfully", user)
 }
 
-// Delete handles deleting a user
+//
+// DeleteUser godoc
+// @Summary      Delete user
+// @Description  Delete a user by ID
+// @Tags         Users
+// @Produce      json
+// @Param        id   path      string  true  "User ID"
+// @Success      200  {object}  models.SuccessResponse
+// @Failure      400  {object}  models.ErrorResponse
+// @Failure      404  {object}  models.ErrorResponse
+// @Router       /api/v1/users/{id} [delete]
+// @Security     BearerAuth
 func (c *UserController) Delete(ctx *gin.Context) {
 	id := ctx.Param("id")
 
@@ -92,7 +144,17 @@ func (c *UserController) Delete(ctx *gin.Context) {
 	utils.OK(ctx, "User deleted successfully", nil)
 }
 
-// Login handles user login
+//
+// LoginUser godoc
+// @Summary      Login
+// @Description  User login
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        credentials  body      models.UserLogin  true  "User login payload"
+// @Success      200         {object}  models.LoginResponse
+// @Failure      400         {object}  models.ErrorResponse
+// @Router       /api/v1/login [post]
 func (c *UserController) Login(ctx *gin.Context) {
 	var userLogin models.UserLogin
 	if err := ctx.ShouldBindJSON(&userLogin); err != nil {

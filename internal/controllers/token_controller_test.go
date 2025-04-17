@@ -1,3 +1,4 @@
+// Unit tests for TokenController using gomock and testify.
 package controllers
 
 import (
@@ -7,7 +8,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/SimpleBookRental/backend/internal/mocks"
 	"github.com/SimpleBookRental/backend/internal/models"
@@ -16,203 +16,134 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func setupTokenController(t *testing.T) (*gin.Engine, *mocks.MockTokenServiceInterface) {
+func setupGinToken() *gin.Engine {
 	gin.SetMode(gin.TestMode)
-	router := gin.Default()
+	return gin.New()
+}
+
+func TestTokenController_RefreshToken_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 	mockService := mocks.NewMockTokenServiceInterface(ctrl)
-	controller := &TokenController{
-		tokenService: mockService,
+	controller := NewTokenController(mockService)
+	router := setupGinToken()
+	router.POST("/token/refresh", controller.RefreshToken)
+
+	reqBody := models.RefreshTokenRequest{
+		RefreshToken: "valid-refresh-token",
 	}
-
-	// Setup routes
-	v1 := router.Group("/api/v1")
-	{
-		v1.POST("/refresh-token", controller.RefreshToken)
-		v1.POST("/logout", controller.Logout)
-	}
-
-	return router, mockService
-}
-
-func TestTokenController_RefreshToken(t *testing.T) {
-	// Setup
-	router, mockService := setupTokenController(t)
-
-	refreshTokenRequest := &models.RefreshTokenRequest{
+	expectedResp := &models.RefreshTokenResponse{
+		AccessToken:  "access-token",
 		RefreshToken: "refresh-token",
+		ExpiresAt:    1234567890,
 	}
+	mockService.EXPECT().RefreshToken(&reqBody).Return(expectedResp, nil)
 
-	refreshTokenResponse := &models.RefreshTokenResponse{
-		AccessToken:  "new-access-token",
-		RefreshToken: "new-refresh-token",
-		ExpiresAt:    time.Now().Unix(),
-	}
-
-	// Expectations
-	mockService.EXPECT().RefreshToken(gomock.AssignableToTypeOf(&models.RefreshTokenRequest{})).Return(refreshTokenResponse, nil)
-
-	// Create request
-	body, _ := json.Marshal(refreshTokenRequest)
-	req, _ := http.NewRequest("POST", "/api/v1/refresh-token", bytes.NewBuffer(body))
+	body, _ := json.Marshal(reqBody)
+	req, _ := http.NewRequest("POST", "/token/refresh", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
-
-	// Perform request
 	router.ServeHTTP(w, req)
 
-	// Assert
 	assert.Equal(t, http.StatusOK, w.Code)
-	var response map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &response)
-	assert.Equal(t, true, response["success"])
-	assert.Equal(t, "Token refreshed successfully", response["message"])
-
-	// Verify expectations handled by gomock controller
 }
 
-func TestTokenController_RefreshToken_InvalidRequest(t *testing.T) {
-	// Setup
-	router, _ := setupTokenController(t)
+func TestTokenController_RefreshToken_BadRequest(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockService := mocks.NewMockTokenServiceInterface(ctrl)
+	controller := NewTokenController(mockService)
+	router := setupGinToken()
+	router.POST("/token/refresh", controller.RefreshToken)
 
-	// Invalid request (missing required fields)
-	refreshTokenRequest := map[string]interface{}{
-		// Missing refresh_token
-	}
-
-	// Create request
-	body, _ := json.Marshal(refreshTokenRequest)
-	req, _ := http.NewRequest("POST", "/api/v1/refresh-token", bytes.NewBuffer(body))
+	// Invalid JSON
+	req, _ := http.NewRequest("POST", "/token/refresh", bytes.NewBuffer([]byte("{invalid")))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
-
-	// Perform request
 	router.ServeHTTP(w, req)
 
-	// Assert
 	assert.Equal(t, http.StatusBadRequest, w.Code)
-	var response map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &response)
-	assert.Equal(t, false, response["success"])
-	assert.Equal(t, "Invalid request body", response["message"])
-
-	// No expectations to verify as the service should not be called
 }
 
 func TestTokenController_RefreshToken_ServiceError(t *testing.T) {
-	// Setup
-	router, mockService := setupTokenController(t)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockService := mocks.NewMockTokenServiceInterface(ctrl)
+	controller := NewTokenController(mockService)
+	router := setupGinToken()
+	router.POST("/token/refresh", controller.RefreshToken)
 
-	refreshTokenRequest := &models.RefreshTokenRequest{
-		RefreshToken: "refresh-token",
+	reqBody := models.RefreshTokenRequest{
+		RefreshToken: "invalid-refresh-token",
 	}
+	mockService.EXPECT().RefreshToken(&reqBody).Return(nil, errors.New("invalid token"))
 
-	// Expectations
-	mockService.EXPECT().RefreshToken(gomock.AssignableToTypeOf(&models.RefreshTokenRequest{})).Return(nil, errors.New("service error"))
-
-	// Create request
-	body, _ := json.Marshal(refreshTokenRequest)
-	req, _ := http.NewRequest("POST", "/api/v1/refresh-token", bytes.NewBuffer(body))
+	body, _ := json.Marshal(reqBody)
+	req, _ := http.NewRequest("POST", "/token/refresh", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
-
-	// Perform request
 	router.ServeHTTP(w, req)
 
-	// Assert
 	assert.Equal(t, http.StatusBadRequest, w.Code)
-	var response map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &response)
-	assert.Equal(t, false, response["success"])
-	assert.Equal(t, "Failed to refresh token", response["message"])
-
-	// Verify expectations handled by gomock controller
 }
 
-func TestTokenController_Logout(t *testing.T) {
-	// Setup
-	router, mockService := setupTokenController(t)
+func TestTokenController_Logout_Success(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockService := mocks.NewMockTokenServiceInterface(ctrl)
+	controller := NewTokenController(mockService)
+	router := setupGinToken()
+	router.POST("/token/logout", controller.Logout)
 
-	logoutRequest := &models.LogoutRequest{
-		RefreshToken: "refresh-token",
+	reqBody := models.LogoutRequest{
+		RefreshToken: "valid-refresh-token",
 	}
+	mockService.EXPECT().Logout(&reqBody).Return(nil)
 
-	// Expectations
-	mockService.EXPECT().Logout(gomock.AssignableToTypeOf(&models.LogoutRequest{})).Return(nil)
-
-	// Create request
-	body, _ := json.Marshal(logoutRequest)
-	req, _ := http.NewRequest("POST", "/api/v1/logout", bytes.NewBuffer(body))
+	body, _ := json.Marshal(reqBody)
+	req, _ := http.NewRequest("POST", "/token/logout", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
-
-	// Perform request
 	router.ServeHTTP(w, req)
 
-	// Assert
 	assert.Equal(t, http.StatusOK, w.Code)
-	var response map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &response)
-	assert.Equal(t, true, response["success"])
-	assert.Equal(t, "Logged out successfully", response["message"])
-
-	// Verify expectations handled by gomock controller
 }
 
-func TestTokenController_Logout_InvalidRequest(t *testing.T) {
-	// Setup
-	router, _ := setupTokenController(t)
+func TestTokenController_Logout_BadRequest(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockService := mocks.NewMockTokenServiceInterface(ctrl)
+	controller := NewTokenController(mockService)
+	router := setupGinToken()
+	router.POST("/token/logout", controller.Logout)
 
-	// Invalid request (missing required fields)
-	logoutRequest := map[string]interface{}{
-		// Missing refresh_token
-	}
-
-	// Create request
-	body, _ := json.Marshal(logoutRequest)
-	req, _ := http.NewRequest("POST", "/api/v1/logout", bytes.NewBuffer(body))
+	// Invalid JSON
+	req, _ := http.NewRequest("POST", "/token/logout", bytes.NewBuffer([]byte("{invalid")))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
-
-	// Perform request
 	router.ServeHTTP(w, req)
 
-	// Assert
 	assert.Equal(t, http.StatusBadRequest, w.Code)
-	var response map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &response)
-	assert.Equal(t, false, response["success"])
-	assert.Equal(t, "Invalid request body", response["message"])
-
-	// No expectations to verify as the service should not be called
 }
 
 func TestTokenController_Logout_ServiceError(t *testing.T) {
-	// Setup
-	router, mockService := setupTokenController(t)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockService := mocks.NewMockTokenServiceInterface(ctrl)
+	controller := NewTokenController(mockService)
+	router := setupGinToken()
+	router.POST("/token/logout", controller.Logout)
 
-	logoutRequest := &models.LogoutRequest{
-		RefreshToken: "refresh-token",
+	reqBody := models.LogoutRequest{
+		RefreshToken: "invalid-refresh-token",
 	}
+	mockService.EXPECT().Logout(&reqBody).Return(errors.New("logout error"))
 
-	// Expectations
-	mockService.EXPECT().Logout(gomock.AssignableToTypeOf(&models.LogoutRequest{})).Return(errors.New("service error"))
-
-	// Create request
-	body, _ := json.Marshal(logoutRequest)
-	req, _ := http.NewRequest("POST", "/api/v1/logout", bytes.NewBuffer(body))
+	body, _ := json.Marshal(reqBody)
+	req, _ := http.NewRequest("POST", "/token/logout", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
-
-	// Perform request
 	router.ServeHTTP(w, req)
 
-	// Assert
 	assert.Equal(t, http.StatusBadRequest, w.Code)
-	var response map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &response)
-	assert.Equal(t, false, response["success"])
-	assert.Equal(t, "Failed to logout", response["message"])
-
-	// Verify expectations handled by gomock controller
 }

@@ -113,8 +113,10 @@ func generateToken(userID, email string, secret []byte, expiration time.Duration
 	return tokenString, nil
 }
 
-// ValidateToken validates a JWT token
-func ValidateToken(tokenString string, secret []byte) (*Claims, error) {
+var ValidateToken = validateToken
+
+// validateToken validates a JWT token (for testable injection)
+func validateToken(tokenString string, secret []byte) (*Claims, error) {
 	// Parse token
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (any, error) {
 		// Validate signing method

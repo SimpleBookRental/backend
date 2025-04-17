@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"time"
+	"fmt"
 
 	"github.com/SimpleBookRental/backend/internal/models"
 	"gorm.io/gorm"
@@ -10,6 +11,21 @@ import (
 // TokenRepository handles database operations for tokens
 type TokenRepository struct {
 	db *gorm.DB
+}
+
+// GetDB returns the database connection
+func (r *TokenRepository) GetDB() interface{} {
+	return r.db
+}
+
+
+// WithTx returns a new TokenRepository with the given transaction
+func (r *TokenRepository) WithTx(tx interface{}) (TokenRepositoryInterface, error) {
+	db, ok := tx.(*gorm.DB)
+	if !ok {
+		return nil, fmt.Errorf("invalid transaction type")
+	}
+	return &TokenRepository{db: db}, nil
 }
 
 // Ensure TokenRepository implements TokenRepositoryInterface

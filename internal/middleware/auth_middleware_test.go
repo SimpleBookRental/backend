@@ -1,84 +1,263 @@
+// Unit tests for AuthMiddleware using gomock and testify.
 package middleware
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
+	"github.com/SimpleBookRental/backend/internal/models"
+	"github.com/SimpleBookRental/backend/internal/mocks"
+	"github.com/SimpleBookRental/backend/pkg/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
-
-	"github.com/SimpleBookRental/backend/internal/mocks"
 )
 
-func setupAuthMiddleware(t *testing.T) (*gin.Engine, *mocks.MockTokenRepositoryInterface, *mocks.MockUserRepositoryInterface) {
+func setupGinWithAuth(tokenRepo *mocks.MockTokenRepositoryInterface, userRepo *mocks.MockUserRepositoryInterface) *gin.Engine {
 	gin.SetMode(gin.TestMode)
-	router := gin.Default()
-	ctrl := gomock.NewController(t)
-	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
-	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
-
-	// Setup routes
-	router.GET("/protected", AuthMiddleware(mockTokenRepo, mockUserRepo), func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"success": true,
-			"message": "Protected route accessed successfully",
-			"data":    nil,
-		})
+	r := gin.New()
+	r.Use(AuthMiddleware(tokenRepo, userRepo))
+	r.GET("/protected", func(c *gin.Context) {
+		c.JSON(200, gin.H{"success": true})
 	})
-
-	return router, mockTokenRepo, mockUserRepo
+	return r
 }
 
-func TestAuthMiddleware_MissingAuthHeader(t *testing.T) {
-	// Setup
-	router, _, _ := setupAuthMiddleware(t)
+func TestAuthMiddleware_MissingHeader(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	tokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	userRepo := mocks.NewMockUserRepositoryInterface(ctrl)
+	router := setupGinWithAuth(tokenRepo, userRepo)
 
-	// Create request without Authorization header
 	req, _ := http.NewRequest("GET", "/protected", nil)
 	w := httptest.NewRecorder()
-
-	// Perform request
 	router.ServeHTTP(w, req)
 
-	// Assert
-	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	assert.Equal(t, 401, w.Code)
 	assert.Contains(t, w.Body.String(), "Authorization header is required")
 }
 
-func TestAuthMiddleware_InvalidAuthHeaderFormat(t *testing.T) {
-	// Setup
-	router, _, _ := setupAuthMiddleware(t)
+func TestAuthMiddleware_InvalidHeaderFormat(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	tokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	userRepo := mocks.NewMockUserRepositoryInterface(ctrl)
+	router := setupGinWithAuth(tokenRepo, userRepo)
 
-	// Create request with invalid Authorization header format
 	req, _ := http.NewRequest("GET", "/protected", nil)
-	req.Header.Set("Authorization", "InvalidFormat")
+	req.Header.Set("Authorization", "Token abc")
 	w := httptest.NewRecorder()
-
-	// Perform request
 	router.ServeHTTP(w, req)
 
-	// Assert
-	assert.Equal(t, http.StatusUnauthorized, w.Code)
-	assert.Contains(t, w.Body.String(), "Authorization header format must be Bearer {token}")
+	assert.Equal(t, 401, w.Code)
+	assert.Contains(t, w.Body.String(), "Authorization header format must be Bearer")
 }
 
 func TestAuthMiddleware_InvalidToken(t *testing.T) {
-	// Setup
-	router, _, _ := setupAuthMiddleware(t)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	tokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	userRepo := mocks.NewMockUserRepositoryInterface(ctrl)
+	router := setupGinWithAuth(tokenRepo, userRepo)
 
-	token := "invalid-token"
-
-	// Create request
 	req, _ := http.NewRequest("GET", "/protected", nil)
-	req.Header.Set("Authorization", "Bearer "+token)
-	w := httptest.NewRecorder()
+	req.Header.Set("Authorization", "Bearer invalidtoken")
+	// Patch utils.ValidateToken to always return error for this test
+	origValidateToken := utils.ValidateToken
+	utils.ValidateToken = func(token string, secret []byte) (*utils.Claims, error) {
+		return nil, errors.New("invalid")
+	}
+	defer func() { utils.ValidateToken = origValidateToken }()
 
-	// Perform request
+	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
-	// Assert
-	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	assert.Equal(t, 401, w.Code)
 	assert.Contains(t, w.Body.String(), "Invalid or expired token")
+}
+
+func TestAuthMiddleware_TokenNotFound(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	tokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	userRepo := mocks.NewMockUserRepositoryInterface(ctrl)
+	router := setupGinWithAuth(tokenRepo, userRepo)
+
+	claims := &utils.Claims{UserID: "user-1", Email: "test@example.com"}
+	origValidateToken := utils.ValidateToken
+	utils.ValidateToken = func(token string, secret []byte) (*utils.Claims, error) {
+		return claims, nil
+	}
+	defer func() { utils.ValidateToken = origValidateToken }()
+
+	tokenRepo.EXPECT().FindTokenByValue("validtoken").Return(nil, nil)
+
+	req, _ := http.NewRequest("GET", "/protected", nil)
+	req.Header.Set("Authorization", "Bearer validtoken")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 401, w.Code)
+	assert.Contains(t, w.Body.String(), "Invalid token")
+}
+
+func TestAuthMiddleware_TokenRevoked(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	tokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	userRepo := mocks.NewMockUserRepositoryInterface(ctrl)
+	router := setupGinWithAuth(tokenRepo, userRepo)
+
+	claims := &utils.Claims{UserID: "user-1", Email: "test@example.com"}
+	origValidateToken := utils.ValidateToken
+	utils.ValidateToken = func(token string, secret []byte) (*utils.Claims, error) {
+		return claims, nil
+	}
+	defer func() { utils.ValidateToken = origValidateToken }()
+
+	issuedToken := &models.IssuedToken{
+		Token:     "validtoken",
+		IsRevoked: true,
+		ExpiresAt: time.Now().Add(time.Hour),
+		TokenType: string(models.AccessToken),
+	}
+	tokenRepo.EXPECT().FindTokenByValue("validtoken").Return(issuedToken, nil)
+
+	req, _ := http.NewRequest("GET", "/protected", nil)
+	req.Header.Set("Authorization", "Bearer validtoken")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 401, w.Code)
+	assert.Contains(t, w.Body.String(), "Token has been revoked")
+}
+
+func TestAuthMiddleware_TokenExpired(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	tokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	userRepo := mocks.NewMockUserRepositoryInterface(ctrl)
+	router := setupGinWithAuth(tokenRepo, userRepo)
+
+	claims := &utils.Claims{UserID: "user-1", Email: "test@example.com"}
+	origValidateToken := utils.ValidateToken
+	utils.ValidateToken = func(token string, secret []byte) (*utils.Claims, error) {
+		return claims, nil
+	}
+	defer func() { utils.ValidateToken = origValidateToken }()
+
+	issuedToken := &models.IssuedToken{
+		Token:     "validtoken",
+		IsRevoked: false,
+		ExpiresAt: time.Now().Add(-time.Hour),
+		TokenType: string(models.AccessToken),
+	}
+	tokenRepo.EXPECT().FindTokenByValue("validtoken").Return(issuedToken, nil)
+
+	req, _ := http.NewRequest("GET", "/protected", nil)
+	req.Header.Set("Authorization", "Bearer validtoken")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 401, w.Code)
+	assert.Contains(t, w.Body.String(), "Token has expired")
+}
+
+func TestAuthMiddleware_InvalidTokenType(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	tokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	userRepo := mocks.NewMockUserRepositoryInterface(ctrl)
+	router := setupGinWithAuth(tokenRepo, userRepo)
+
+	claims := &utils.Claims{UserID: "user-1", Email: "test@example.com"}
+	origValidateToken := utils.ValidateToken
+	utils.ValidateToken = func(token string, secret []byte) (*utils.Claims, error) {
+		return claims, nil
+	}
+	defer func() { utils.ValidateToken = origValidateToken }()
+
+	issuedToken := &models.IssuedToken{
+		Token:     "validtoken",
+		IsRevoked: false,
+		ExpiresAt: time.Now().Add(time.Hour),
+		TokenType: string(models.RefreshToken),
+	}
+	tokenRepo.EXPECT().FindTokenByValue("validtoken").Return(issuedToken, nil)
+
+	req, _ := http.NewRequest("GET", "/protected", nil)
+	req.Header.Set("Authorization", "Bearer validtoken")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 401, w.Code)
+	assert.Contains(t, w.Body.String(), "Invalid token type")
+}
+
+func TestAuthMiddleware_UserNotFound(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	tokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	userRepo := mocks.NewMockUserRepositoryInterface(ctrl)
+	router := setupGinWithAuth(tokenRepo, userRepo)
+
+	claims := &utils.Claims{UserID: "user-1", Email: "test@example.com"}
+	origValidateToken := utils.ValidateToken
+	utils.ValidateToken = func(token string, secret []byte) (*utils.Claims, error) {
+		return claims, nil
+	}
+	defer func() { utils.ValidateToken = origValidateToken }()
+
+	issuedToken := &models.IssuedToken{
+		Token:     "validtoken",
+		IsRevoked: false,
+		ExpiresAt: time.Now().Add(time.Hour),
+		TokenType: string(models.AccessToken),
+	}
+	tokenRepo.EXPECT().FindTokenByValue("validtoken").Return(issuedToken, nil)
+	userRepo.EXPECT().FindByID("user-1").Return(nil, nil)
+
+	req, _ := http.NewRequest("GET", "/protected", nil)
+	req.Header.Set("Authorization", "Bearer validtoken")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 401, w.Code)
+	assert.Contains(t, w.Body.String(), "User not found")
+}
+
+func TestAuthMiddleware_Success(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	tokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	userRepo := mocks.NewMockUserRepositoryInterface(ctrl)
+	router := setupGinWithAuth(tokenRepo, userRepo)
+
+	claims := &utils.Claims{UserID: "user-1", Email: "test@example.com"}
+	origValidateToken := utils.ValidateToken
+	utils.ValidateToken = func(token string, secret []byte) (*utils.Claims, error) {
+		return claims, nil
+	}
+	defer func() { utils.ValidateToken = origValidateToken }()
+
+	issuedToken := &models.IssuedToken{
+		Token:     "validtoken",
+		IsRevoked: false,
+		ExpiresAt: time.Now().Add(time.Hour),
+		TokenType: string(models.AccessToken),
+	}
+	tokenRepo.EXPECT().FindTokenByValue("validtoken").Return(issuedToken, nil)
+	userRepo.EXPECT().FindByID("user-1").Return(&models.User{ID: "user-1", Role: "ADMIN"}, nil)
+
+	req, _ := http.NewRequest("GET", "/protected", nil)
+	req.Header.Set("Authorization", "Bearer validtoken")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 200, w.Code)
+	assert.Contains(t, w.Body.String(), "success")
 }

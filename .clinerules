@@ -1,6 +1,6 @@
 # User Preferences
 
-- The user prefers to communicate in Vietnamese.
+- Speak in Vietnamese.
 - Always double-check your code before responding, and ensure it is functional and fully meets the user's requirements.
 
 # Project Guidelines
@@ -23,6 +23,7 @@
 - Use `github.com/go-gorm/gorm` for ORM.
 - Use `github.com/gin-gonic/gin` as the HTTP web framework.
 - Use `github.com/uber-go/mock` for mocking in unit tests.
+- Use `github.com/swaggo/swag` to generate Swagger documentation from Go annotations.
 
 # Project Structure
 
