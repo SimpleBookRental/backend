@@ -28,7 +28,7 @@ func NewBookUserController(bookUserService services.BookUserServiceInterface) *B
 // @Produce      json
 // @Param        id      path      string                        true  "Book ID"
 // @Param        request body      models.BookTransferRequest    true  "Transfer request"
-// @Success      200     {object}  models.SuccessResponse
+// @Success      200     {object}  map[string]bool
 // @Failure      400     {object}  models.ErrorResponse
 // @Failure      403     {object}  models.ErrorResponse
 // @Router       /api/v1/books/{id}/transfer [post]
@@ -42,7 +42,7 @@ func (c *BookUserController) TransferBookOwnership(ctx *gin.Context) {
 	}
 	
 	if err := ctx.ShouldBindJSON(&request); err != nil {
-		utils.BadRequest(ctx, "Invalid request body", err.Error())
+		utils.BadRequest(ctx, err.Error())
 		return
 	}
 	
@@ -63,11 +63,11 @@ func (c *BookUserController) TransferBookOwnership(ctx *gin.Context) {
 	// Call service to transfer book ownership
 	err := c.bookUserService.TransferBookOwnership(bookID, request.FromUserID, request.ToUserID)
 	if err != nil {
-		utils.BadRequest(ctx, "Failed to transfer book ownership", err.Error())
+		utils.BadRequest(ctx, err.Error())
 		return
 	}
 	
-	utils.OK(ctx, "Book ownership transferred successfully", nil)
+	utils.OK(ctx, gin.H{"transferred": true})
 }
 
 //
@@ -93,7 +93,7 @@ func (c *BookUserController) CreateBookWithUser(ctx *gin.Context) {
 	}
 	
 	if err := ctx.ShouldBindJSON(&request); err != nil {
-		utils.BadRequest(ctx, "Invalid request body", err.Error())
+		utils.BadRequest(ctx, err.Error())
 		return
 	}
 	
@@ -122,9 +122,9 @@ func (c *BookUserController) CreateBookWithUser(ctx *gin.Context) {
 	// Call service to create book with user
 	book, err := c.bookUserService.CreateBookWithUser(bookCreate, request.UserID)
 	if err != nil {
-		utils.BadRequest(ctx, "Failed to create book", err.Error())
+		utils.BadRequest(ctx, err.Error())
 		return
 	}
 	
-	utils.Created(ctx, "Book created successfully", book)
+	utils.Created(ctx, book)
 }

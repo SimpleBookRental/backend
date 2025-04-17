@@ -17,7 +17,6 @@ func NewTokenController(tokenService services.TokenServiceInterface) *TokenContr
 	return &TokenController{tokenService: tokenService}
 }
 
-//
 // RefreshToken godoc
 // @Summary      Refresh token
 // @Description  Refresh JWT token
@@ -31,20 +30,19 @@ func NewTokenController(tokenService services.TokenServiceInterface) *TokenContr
 func (c *TokenController) RefreshToken(ctx *gin.Context) {
 	var request models.RefreshTokenRequest
 	if err := ctx.ShouldBindJSON(&request); err != nil {
-		utils.BadRequest(ctx, "Invalid request body", err.Error())
+		utils.BadRequest(ctx, err.Error())
 		return
 	}
 
 	response, err := c.tokenService.RefreshToken(&request)
 	if err != nil {
-		utils.BadRequest(ctx, "Failed to refresh token", err.Error())
+		utils.BadRequest(ctx, err.Error())
 		return
 	}
 
-	utils.OK(ctx, "Token refreshed successfully", response)
+	utils.OK(ctx, response)
 }
 
-//
 // Logout godoc
 // @Summary      Logout
 // @Description  User logout
@@ -52,21 +50,21 @@ func (c *TokenController) RefreshToken(ctx *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        request body      models.LogoutRequest  true  "Logout payload"
-// @Success      200     {object}  models.SuccessResponse
+// @Success      200     {object}  map[string]bool
 // @Failure      400     {object}  models.ErrorResponse
 // @Router       /api/v1/logout [post]
 func (c *TokenController) Logout(ctx *gin.Context) {
 	var request models.LogoutRequest
 	if err := ctx.ShouldBindJSON(&request); err != nil {
-		utils.BadRequest(ctx, "Invalid request body", err.Error())
+		utils.BadRequest(ctx, err.Error())
 		return
 	}
 
 	err := c.tokenService.Logout(&request)
 	if err != nil {
-		utils.BadRequest(ctx, "Failed to logout", err.Error())
+		utils.BadRequest(ctx, err.Error())
 		return
 	}
 
-	utils.OK(ctx, "Logged out successfully", nil)
+	utils.OK(ctx, gin.H{"logged_out": true})
 }

@@ -33,17 +33,17 @@ func NewUserController(userService services.UserServiceInterface, tokenRepo repo
 func (c *UserController) Create(ctx *gin.Context) {
 	var userCreate models.UserCreate
 	if err := ctx.ShouldBindJSON(&userCreate); err != nil {
-		utils.BadRequest(ctx, "Invalid request body", err.Error())
+		utils.BadRequest(ctx, err.Error())
 		return
 	}
 
 	user, err := c.userService.Create(&userCreate)
 	if err != nil {
-		utils.BadRequest(ctx, "Failed to create user", err.Error())
+		utils.BadRequest(ctx, err.Error())
 		return
 	}
 
-	utils.Created(ctx, "User created successfully", user)
+	utils.Created(ctx, user)
 }
 
 //
@@ -65,7 +65,7 @@ func (c *UserController) GetByID(ctx *gin.Context) {
 		return
 	}
 
-	utils.OK(ctx, "User retrieved successfully", user)
+	utils.OK(ctx, user)
 }
 
 //
@@ -81,11 +81,11 @@ func (c *UserController) GetByID(ctx *gin.Context) {
 func (c *UserController) GetAll(ctx *gin.Context) {
 	users, err := c.userService.GetAll()
 	if err != nil {
-		utils.InternalServerError(ctx, "Failed to retrieve users", err.Error())
+		utils.InternalServerError(ctx, err.Error())
 		return
 	}
 
-	utils.OK(ctx, "Users retrieved successfully", users)
+	utils.OK(ctx, users)
 }
 
 //
@@ -107,17 +107,17 @@ func (c *UserController) Update(ctx *gin.Context) {
 
 	var userUpdate models.UserUpdate
 	if err := ctx.ShouldBindJSON(&userUpdate); err != nil {
-		utils.BadRequest(ctx, "Invalid request body", err.Error())
+		utils.BadRequest(ctx, err.Error())
 		return
 	}
 
 	user, err := c.userService.Update(id, &userUpdate)
 	if err != nil {
-		utils.BadRequest(ctx, "Failed to update user", err.Error())
+		utils.BadRequest(ctx, err.Error())
 		return
 	}
 
-	utils.OK(ctx, "User updated successfully", user)
+	utils.OK(ctx, user)
 }
 
 //
@@ -127,7 +127,7 @@ func (c *UserController) Update(ctx *gin.Context) {
 // @Tags         Users
 // @Produce      json
 // @Param        id   path      string  true  "User ID"
-// @Success      200  {object}  models.SuccessResponse
+// @Success      200  {object}  map[string]bool
 // @Failure      400  {object}  models.ErrorResponse
 // @Failure      404  {object}  models.ErrorResponse
 // @Router       /api/v1/users/{id} [delete]
@@ -137,11 +137,11 @@ func (c *UserController) Delete(ctx *gin.Context) {
 
 	err := c.userService.Delete(id)
 	if err != nil {
-		utils.BadRequest(ctx, "Failed to delete user", err.Error())
+		utils.BadRequest(ctx, err.Error())
 		return
 	}
 
-	utils.OK(ctx, "User deleted successfully", nil)
+	utils.OK(ctx, gin.H{"deleted": true})
 }
 
 //
@@ -158,15 +158,15 @@ func (c *UserController) Delete(ctx *gin.Context) {
 func (c *UserController) Login(ctx *gin.Context) {
 	var userLogin models.UserLogin
 	if err := ctx.ShouldBindJSON(&userLogin); err != nil {
-		utils.BadRequest(ctx, "Invalid request body", err.Error())
+		utils.BadRequest(ctx, err.Error())
 		return
 	}
 
 	response, err := c.userService.Login(&userLogin, c.tokenRepo)
 	if err != nil {
-		utils.BadRequest(ctx, "Login failed", err.Error())
+		utils.BadRequest(ctx, err.Error())
 		return
 	}
 
-	utils.OK(ctx, "Login successful", response)
+	utils.OK(ctx, response)
 }

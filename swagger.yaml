@@ -134,14 +134,6 @@ definitions:
         description: Error details
         example: Validation failed
         type: string
-      message:
-        description: Error message
-        example: Error message
-        type: string
-      success:
-        description: Success flag
-        example: false
-        type: boolean
     type: object
   github_com_SimpleBookRental_backend_internal_models.LoginResponse:
     description: Login response
@@ -198,20 +190,6 @@ definitions:
         description: New refresh token
         example: refresh-token
         type: string
-    type: object
-  github_com_SimpleBookRental_backend_internal_models.SuccessResponse:
-    description: Success response
-    properties:
-      data:
-        description: Optional data
-      message:
-        description: Success message
-        example: Operation successful
-        type: string
-      success:
-        description: Success flag
-        example: true
-        type: boolean
     type: object
   github_com_SimpleBookRental_backend_internal_models.User:
     description: User entity
@@ -400,7 +378,9 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.SuccessResponse'
+            additionalProperties:
+              type: boolean
+            type: object
         "400":
           description: Bad Request
           schema:
@@ -497,7 +477,9 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.SuccessResponse'
+            additionalProperties:
+              type: boolean
+            type: object
         "400":
           description: Bad Request
           schema:
@@ -555,7 +537,9 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.SuccessResponse'
+            additionalProperties:
+              type: boolean
+            type: object
         "400":
           description: Bad Request
           schema:
@@ -650,7 +634,9 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.SuccessResponse'
+            additionalProperties:
+              type: boolean
+            type: object
         "400":
           description: Bad Request
           schema:

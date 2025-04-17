@@ -10,7 +10,7 @@
 - Write unit tests for all newly implemented code.
 - Comment all code in English.
 - Load configuration from a `.env` file.
-- Keep the following files up-to-date:
+- Keep the following files sync with new capabilities:
     - `README.md`
     - `Makefile`
     - `Dockerfile`

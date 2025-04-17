@@ -32,7 +32,7 @@ func NewBookController(bookService services.BookServiceInterface) *BookControlle
 func (c *BookController) Create(ctx *gin.Context) {
 	var bookCreate models.BookCreate
 	if err := ctx.ShouldBindJSON(&bookCreate); err != nil {
-		utils.BadRequest(ctx, "Invalid request body", err.Error())
+		utils.BadRequest(ctx, err.Error())
 		return
 	}
 
@@ -56,11 +56,11 @@ func (c *BookController) Create(ctx *gin.Context) {
 
 	book, err := c.bookService.Create(&bookCreate)
 	if err != nil {
-		utils.BadRequest(ctx, "Failed to create book", err.Error())
+		utils.BadRequest(ctx, err.Error())
 		return
 	}
 
-	utils.Created(ctx, "Book created successfully", book)
+	utils.Created(ctx, book)
 }
 
 //
@@ -99,7 +99,7 @@ func (c *BookController) GetByID(ctx *gin.Context) {
 		// If role is ADMIN, can view any book
 	}
 
-	utils.OK(ctx, "Book retrieved successfully", book)
+	utils.OK(ctx, book)
 }
 
 //
@@ -135,11 +135,11 @@ func (c *BookController) GetAll(ctx *gin.Context) {
 	}
 
 	if err != nil {
-		utils.InternalServerError(ctx, "Failed to retrieve books", err.Error())
+		utils.InternalServerError(ctx, err.Error())
 		return
 	}
 
-	utils.OK(ctx, "Books retrieved successfully", books)
+	utils.OK(ctx, books)
 }
 
 //
@@ -168,7 +168,7 @@ func (c *BookController) Update(ctx *gin.Context) {
 
 	var bookUpdate models.BookUpdate
 	if err := ctx.ShouldBindJSON(&bookUpdate); err != nil {
-		utils.BadRequest(ctx, "Invalid request body", err.Error())
+		utils.BadRequest(ctx, err.Error())
 		return
 	}
 
@@ -193,11 +193,11 @@ func (c *BookController) Update(ctx *gin.Context) {
 
 	book, err := c.bookService.Update(id, &bookUpdate)
 	if err != nil {
-		utils.BadRequest(ctx, "Failed to update book", err.Error())
+		utils.BadRequest(ctx, err.Error())
 		return
 	}
 
-	utils.OK(ctx, "Book updated successfully", book)
+	utils.OK(ctx, book)
 }
 
 //
@@ -207,7 +207,7 @@ func (c *BookController) Update(ctx *gin.Context) {
 // @Tags         Books
 // @Produce      json
 // @Param        id   path      string  true  "Book ID"
-// @Success      200  {object}  models.SuccessResponse
+// @Success      200  {object}  map[string]bool
 // @Failure      400  {object}  models.ErrorResponse
 // @Failure      404  {object}  models.ErrorResponse
 // @Router       /api/v1/books/{id} [delete]
@@ -240,9 +240,9 @@ func (c *BookController) Delete(ctx *gin.Context) {
 
 	err = c.bookService.Delete(id)
 	if err != nil {
-		utils.BadRequest(ctx, "Failed to delete book", err.Error())
+		utils.BadRequest(ctx, err.Error())
 		return
 	}
 
-	utils.OK(ctx, "Book deleted successfully", nil)
+	utils.OK(ctx, gin.H{"deleted": true})
 }

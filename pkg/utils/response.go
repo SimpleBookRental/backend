@@ -6,58 +6,37 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Response is the standard API response structure
-type Response struct {
-	Success bool        `json:"success"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data,omitempty"`
-	Error   interface{} `json:"error,omitempty"`
+/*
+	Refactored response helpers to return data directly (no wrapping in "data", "success", "message").
+	For error responses, return a simple JSON with "error" field.
+*/
+
+// Created returns a 201 Created response with data directly
+func Created(c *gin.Context, data interface{}) {
+	c.JSON(http.StatusCreated, data)
 }
 
-// SuccessResponse returns a success response
-func SuccessResponse(c *gin.Context, statusCode int, message string, data interface{}) {
-	c.JSON(statusCode, Response{
-		Success: true,
-		Message: message,
-		Data:    data,
-	})
+// OK returns a 200 OK response with data directly
+func OK(c *gin.Context, data interface{}) {
+	c.JSON(http.StatusOK, data)
 }
 
-// ErrorResponse returns an error response
-func ErrorResponse(c *gin.Context, statusCode int, message string, err interface{}) {
-	c.JSON(statusCode, Response{
-		Success: false,
-		Message: message,
-		Error:   err,
-	})
+// BadRequest returns a 400 Bad Request response with error message
+func BadRequest(c *gin.Context, err interface{}) {
+	c.JSON(http.StatusBadRequest, gin.H{"error": err})
 }
 
-// Created returns a 201 Created response
-func Created(c *gin.Context, message string, data interface{}) {
-	SuccessResponse(c, http.StatusCreated, message, data)
+// NotFound returns a 404 Not Found response with error message
+func NotFound(c *gin.Context, err interface{}) {
+	c.JSON(http.StatusNotFound, gin.H{"error": err})
 }
 
-// OK returns a 200 OK response
-func OK(c *gin.Context, message string, data interface{}) {
-	SuccessResponse(c, http.StatusOK, message, data)
+// InternalServerError returns a 500 Internal Server Error response with error message
+func InternalServerError(c *gin.Context, err interface{}) {
+	c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 }
 
-// BadRequest returns a 400 Bad Request response
-func BadRequest(c *gin.Context, message string, err interface{}) {
-	ErrorResponse(c, http.StatusBadRequest, message, err)
-}
-
-// NotFound returns a 404 Not Found response
-func NotFound(c *gin.Context, message string) {
-	ErrorResponse(c, http.StatusNotFound, message, nil)
-}
-
-// InternalServerError returns a 500 Internal Server Error response
-func InternalServerError(c *gin.Context, message string, err interface{}) {
-	ErrorResponse(c, http.StatusInternalServerError, message, err)
-}
-
-// Forbidden returns a 403 Forbidden response
-func Forbidden(c *gin.Context, message string) {
-	ErrorResponse(c, http.StatusForbidden, message, nil)
+// Forbidden returns a 403 Forbidden response with error message
+func Forbidden(c *gin.Context, err interface{}) {
+	c.JSON(http.StatusForbidden, gin.H{"error": err})
 }
