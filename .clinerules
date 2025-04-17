@@ -8,7 +8,7 @@
 - Use Go 1.24 or higher.
 - Handle all errors properly with clear and descriptive messages.
 - Write unit tests for all newly implemented code.
-- Document all code in English.
+- Comment all code in English.
 - Load configuration from a `.env` file.
 - Keep the following files up-to-date:
     - `README.md`
