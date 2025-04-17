@@ -69,6 +69,7 @@ mock:
 	@echo "Generating mocks..."
 	@mockgen -destination=internal/mocks/mock_user_service.go -package=mocks github.com/SimpleBookRental/backend/internal/services UserServiceInterface
 	@mockgen -destination=internal/mocks/mock_book_service.go -package=mocks github.com/SimpleBookRental/backend/internal/services BookServiceInterface
+	@mockgen -destination=internal/mocks/mock_book_user_service.go -package=mocks github.com/SimpleBookRental/backend/internal/services BookUserServiceInterface
 	@mockgen -destination=internal/mocks/mock_token_service.go -package=mocks github.com/SimpleBookRental/backend/internal/services TokenServiceInterface
 	@mockgen -destination=internal/mocks/mock_user_repository.go -package=mocks github.com/SimpleBookRental/backend/internal/repositories UserRepositoryInterface
 	@mockgen -destination=internal/mocks/mock_book_repository.go -package=mocks github.com/SimpleBookRental/backend/internal/repositories BookRepositoryInterface
