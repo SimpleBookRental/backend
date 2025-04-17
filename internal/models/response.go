@@ -16,3 +16,35 @@ type SuccessResponse struct {
 	Message string      `json:"message" example:"Operation successful"` // Success message
 	Data    interface{} `json:"data,omitempty"`                  // Optional data
 }
+
+// UserResponse represents a response containing a single user.
+// @Description User response
+type UserResponse struct {
+	Success bool   `json:"success" example:"true"`
+	Message string `json:"message" example:"User retrieved successfully"`
+	Data    *User  `json:"data"`
+}
+
+// UsersResponse represents a response containing a list of users.
+// @Description Users response
+type UsersResponse struct {
+	Success bool    `json:"success" example:"true"`
+	Message string  `json:"message" example:"Users retrieved successfully"`
+	Data    []*User `json:"data"`
+}
+
+// BookResponse represents a response containing a single book.
+// @Description Book response
+type BookResponse struct {
+	Success bool   `json:"success" example:"true"`
+	Message string `json:"message" example:"Book retrieved successfully"`
+	Data    *Book  `json:"data"`
+}
+
+// BooksResponse represents a response containing a list of books.
+// @Description Books response
+type BooksResponse struct {
+	Success bool    `json:"success" example:"true"`
+	Message string  `json:"message" example:"Books retrieved successfully"`
+	Data    []*Book `json:"data"`
+}

@@ -35,8 +35,9 @@ func (t *IssuedToken) BeforeCreate(tx *gorm.DB) error {
 }
 
 // LogoutRequest is the request body for user logout
+// @Description Logout request
 type LogoutRequest struct {
-	RefreshToken string `json:"refresh_token" binding:"required"`
+	RefreshToken string `json:"refresh_token" binding:"required" example:"refresh-token"` // Refresh token
 }
 
 // TokenType defines the type of token

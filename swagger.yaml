@@ -164,26 +164,39 @@ definitions:
         description: User info
     type: object
   github_com_SimpleBookRental_backend_internal_models.LogoutRequest:
+    description: Logout request
     properties:
       refresh_token:
+        description: Refresh token
+        example: refresh-token
         type: string
     required:
     - refresh_token
     type: object
   github_com_SimpleBookRental_backend_internal_models.RefreshTokenRequest:
+    description: Refresh token request
     properties:
       refresh_token:
+        description: Refresh token
+        example: refresh-token
         type: string
     required:
     - refresh_token
     type: object
   github_com_SimpleBookRental_backend_internal_models.RefreshTokenResponse:
+    description: Refresh token response
     properties:
       access_token:
+        description: New access token
+        example: jwt-token
         type: string
       expires_at:
+        description: Expiry timestamp
+        example: 1713345600
         type: integer
       refresh_token:
+        description: New refresh token
+        example: refresh-token
         type: string
     type: object
   github_com_SimpleBookRental_backend_internal_models.SuccessResponse:
