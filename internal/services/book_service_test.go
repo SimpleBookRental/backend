@@ -5,10 +5,11 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/SimpleBookRental/backend/internal/models"
-	"github.com/SimpleBookRental/backend/internal/mocks"
-	"go.uber.org/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
+
+	"github.com/SimpleBookRental/backend/internal/mocks"
+	"github.com/SimpleBookRental/backend/internal/models"
 )
 
 func validUUID() string {

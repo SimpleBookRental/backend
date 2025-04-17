@@ -3,12 +3,12 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 
+	"github.com/SimpleBookRental/backend/internal/cache"
 	"github.com/SimpleBookRental/backend/internal/controllers"
 	"github.com/SimpleBookRental/backend/internal/middleware"
 	"github.com/SimpleBookRental/backend/internal/repositories"
 )
 
-// SetupRoutes sets up all the routes for the application
 func SetupRoutes(
 	router *gin.Engine,
 	userController *controllers.UserController,
@@ -17,6 +17,8 @@ func SetupRoutes(
 	bookUserController *controllers.BookUserController,
 	tokenRepo *repositories.TokenRepository,
 	userRepo *repositories.UserRepository,
+	redisCache *cache.RedisCache,
+	cacheTTL int,
 ) {
 	// API v1 group
 	v1 := router.Group("/api/v1")
@@ -44,34 +46,40 @@ func SetupRoutes(
 				users.DELETE("/:id", userController.Delete)
 			}
 
-			// Book routes
-			books := auth.Group("books")
-			{
-				// All authenticated users can create books
-				books.POST("", bookController.Create)
+		// Book routes
+		books := auth.Group("books")
+		{
+			// Apply cache middleware to GET requests
+			books.Use(middleware.CacheMiddleware(redisCache, cacheTTL))
 
-				// All authenticated users can get all books (filtered by role in controller)
-				books.GET("", bookController.GetAll)
+			// All authenticated users can create books
+			books.POST("", bookController.Create)
 
-				// All authenticated users can get a book by ID (filtered by role in controller)
-				books.GET("/:id", bookController.GetByID)
+			// All authenticated users can get all books (filtered by role in controller)
+			books.GET("", bookController.GetAll)
 
-				// All authenticated users can update a book (filtered by role in controller)
-				books.PUT("/:id", bookController.Update)
+			// All authenticated users can get a book by ID (filtered by role in controller)
+			books.GET("/:id", bookController.GetByID)
 
-				// All authenticated users can delete a book (filtered by role in controller)
-				books.DELETE("/:id", bookController.Delete)
+			// All authenticated users can update a book (filtered by role in controller)
+			books.PUT("/:id", bookController.Update)
 
-				// Book-User operations
-				books.POST("/:id/transfer", bookUserController.TransferBookOwnership)
-			}
+			// All authenticated users can delete a book (filtered by role in controller)
+			books.DELETE("/:id", bookController.Delete)
 
-			// Book-User routes
-			bookUsers := auth.Group("book-users")
-			{
-				// Create a book with user
-				bookUsers.POST("", bookUserController.CreateBookWithUser)
-			}
+			// Book-User operations
+			books.POST("/:id/transfer", bookUserController.TransferBookOwnership)
+		}
+
+		// Book-User routes
+		bookUsers := auth.Group("book-users")
+		{
+			// Apply cache middleware to GET requests if any (currently only POST)
+			bookUsers.Use(middleware.CacheMiddleware(redisCache, cacheTTL))
+
+			// Create a book with user
+			bookUsers.POST("", bookUserController.CreateBookWithUser)
+		}
 
 		}
 	}

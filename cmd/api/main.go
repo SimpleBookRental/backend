@@ -17,6 +17,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
+	"github.com/SimpleBookRental/backend/internal/cache"
 	"github.com/SimpleBookRental/backend/internal/config"
 	"github.com/SimpleBookRental/backend/internal/controllers"
 	"github.com/SimpleBookRental/backend/internal/repositories"
@@ -52,6 +53,10 @@ func main() {
 
 	// Initialize services
 	userService := services.NewUserService(userRepo)
+
+	// Initialize Redis cache
+	redisCache := cache.NewRedisCache(cfg.Cache.RedisAddress, cfg.Cache.RedisTTLSeconds)
+
 	bookService := services.NewBookService(bookRepo, userRepo)
 	tokenService := services.NewTokenService(tokenRepo, userRepo)
 	bookUserService := services.NewBookUserService(txManager, bookRepo, userRepo)
@@ -76,7 +81,7 @@ func main() {
 	}))
 
 	// Setup routes
-	routes.SetupRoutes(router, userController, bookController, tokenController, bookUserController, tokenRepo, userRepo)
+	routes.SetupRoutes(router, userController, bookController, tokenController, bookUserController, tokenRepo, userRepo, redisCache, cfg.Cache.RedisTTLSeconds)
 
 	// Start server
 	serverAddr := fmt.Sprintf(":%s", cfg.Server.Port)

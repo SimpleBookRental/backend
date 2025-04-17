@@ -26,6 +26,11 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
     steps:
     - name: Set up Go
       uses: actions/setup-go@v4
@@ -56,6 +61,8 @@ jobs:
         JWT_REFRESH_SECRET: test_refresh_secret
         JWT_ACCESS_EXPIRATION: 15m
         JWT_REFRESH_EXPIRATION: 24h
+        REDIS_ADDRESS: redis:6379
+        REDIS_CACHE_TTL_SECONDS: 300
 
     - name: Test with coverage
       run: go test -v -coverprofile=coverage.out ./...
@@ -69,6 +76,8 @@ jobs:
         JWT_REFRESH_SECRET: test_refresh_secret
         JWT_ACCESS_EXPIRATION: 15m
         JWT_REFRESH_EXPIRATION: 24h
+        REDIS_ADDRESS: redis:6379
+        REDIS_CACHE_TTL_SECONDS: 300
 
     - name: Display coverage summary
       run: go tool cover -func=coverage.out
