@@ -17,7 +17,7 @@ func SetupRoutes(
 	bookUserController *controllers.BookUserController,
 	tokenRepo *repositories.TokenRepository,
 	userRepo *repositories.UserRepository,
-	redisCache *cache.RedisCache,
+	redisCache cache.Cache,
 	cacheTTL int,
 ) {
 	// API v1 group
@@ -46,40 +46,40 @@ func SetupRoutes(
 				users.DELETE("/:id", userController.Delete)
 			}
 
-		// Book routes
-		books := auth.Group("books")
-		{
-			// Apply cache middleware to GET requests
-			books.Use(middleware.CacheMiddleware(redisCache, cacheTTL))
+			// Book routes
+			books := auth.Group("books")
+			{
+				// Apply cache middleware to GET requests
+				books.Use(middleware.CacheMiddleware(redisCache, cacheTTL))
 
-			// All authenticated users can create books
-			books.POST("", bookController.Create)
+				// All authenticated users can create books
+				books.POST("", bookController.Create)
 
-			// All authenticated users can get all books (filtered by role in controller)
-			books.GET("", bookController.GetAll)
+				// All authenticated users can get all books (filtered by role in controller)
+				books.GET("", bookController.GetAll)
 
-			// All authenticated users can get a book by ID (filtered by role in controller)
-			books.GET("/:id", bookController.GetByID)
+				// All authenticated users can get a book by ID (filtered by role in controller)
+				books.GET("/:id", bookController.GetByID)
 
-			// All authenticated users can update a book (filtered by role in controller)
-			books.PUT("/:id", bookController.Update)
+				// All authenticated users can update a book (filtered by role in controller)
+				books.PUT("/:id", bookController.Update)
 
-			// All authenticated users can delete a book (filtered by role in controller)
-			books.DELETE("/:id", bookController.Delete)
+				// All authenticated users can delete a book (filtered by role in controller)
+				books.DELETE("/:id", bookController.Delete)
 
-			// Book-User operations
-			books.POST("/:id/transfer", bookUserController.TransferBookOwnership)
-		}
+				// Book-User operations
+				books.POST("/:id/transfer", bookUserController.TransferBookOwnership)
+			}
 
-		// Book-User routes
-		bookUsers := auth.Group("book-users")
-		{
-			// Apply cache middleware to GET requests if any (currently only POST)
-			bookUsers.Use(middleware.CacheMiddleware(redisCache, cacheTTL))
+			// Book-User routes
+			bookUsers := auth.Group("book-users")
+			{
+				// Apply cache middleware to GET requests if any (currently only POST)
+				bookUsers.Use(middleware.CacheMiddleware(redisCache, cacheTTL))
 
-			// Create a book with user
-			bookUsers.POST("", bookUserController.CreateBookWithUser)
-		}
+				// Create a book with user
+				bookUsers.POST("", bookUserController.CreateBookWithUser)
+			}
 
 		}
 	}

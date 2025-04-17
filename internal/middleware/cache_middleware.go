@@ -6,12 +6,14 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+
 	"github.com/SimpleBookRental/backend/internal/cache"
 )
 
-// CacheMiddleware returns a Gin middleware that caches GET responses in Redis
-func CacheMiddleware(redisCache *cache.RedisCache, ttlSeconds int) gin.HandlerFunc {
+// CacheMiddleware returns a Gin middleware that caches GET responses using the provided Cache interface
+func CacheMiddleware(cacheInstance cache.Cache, ttlSeconds int) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// Only cache GET requests
 		if c.Request.Method != http.MethodGet {
 			c.Next()
 			return
@@ -28,7 +30,7 @@ func CacheMiddleware(redisCache *cache.RedisCache, ttlSeconds int) gin.HandlerFu
 
 		// Try to get cached response
 		var cachedResponse []byte
-		found, err := redisCache.Get(cacheKey, &cachedResponse)
+		found, err := cacheInstance.Get(cacheKey, &cachedResponse)
 		if err == nil && found {
 			// log cache hit
 			log.Println("[Cache HIT] Key:", cacheKey)
@@ -49,7 +51,7 @@ func CacheMiddleware(redisCache *cache.RedisCache, ttlSeconds int) gin.HandlerFu
 
 		// Cache only if status is 200
 		if c.Writer.Status() == http.StatusOK {
-			err := redisCache.Set(cacheKey, writer.body.Bytes())
+			err := cacheInstance.Set(cacheKey, writer.body.Bytes())
 			if err != nil {
 				log.Println("[Cache SET ERROR] Key:", cacheKey, "Error:", err.Error())
 			} else {

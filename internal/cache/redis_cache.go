@@ -1,3 +1,4 @@
+// RedisCache wraps a Redis client
 package cache
 
 import (
@@ -15,8 +16,8 @@ type RedisCache struct {
 	ctx    context.Context
 }
 
-// NewRedisCache creates a new RedisCache instance
-func NewRedisCache(addr string, ttlSeconds int) *RedisCache {
+// NewRedisCache creates a new RedisCache instance and returns as Cache interface
+func NewRedisCache(addr string, ttlSeconds int) Cache {
 	rdb := redis.NewClient(&redis.Options{
 		Addr: addr,
 	})
