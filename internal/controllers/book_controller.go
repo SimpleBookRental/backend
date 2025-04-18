@@ -54,6 +54,12 @@ func (c *BookController) Create(ctx *gin.Context) {
 		}
 	}
 
+	// Ensure user_id is not empty
+	if bookCreate.UserID == "" {
+		utils.BadRequest(ctx, "user_id is required")
+		return
+	}
+
 	book, err := c.bookService.Create(&bookCreate)
 	if err != nil {
 		utils.BadRequest(ctx, err.Error())

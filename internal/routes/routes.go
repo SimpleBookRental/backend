@@ -37,10 +37,10 @@ func SetupRoutes(
 			// User routes
 			users := auth.Group("users")
 			{
-				users.GET("", userController.GetAll)
-				users.GET("/:id", userController.GetByID)
-				users.PUT("/:id", userController.Update)
-				users.DELETE("/:id", userController.Delete)
+				users.GET("", middleware.RequireAdmin(), userController.GetAll)
+				users.GET("/:id", middleware.RequireAdminOrSameUser(), userController.GetByID)
+				users.PUT("/:id", middleware.RequireAdminOrSameUser(), userController.Update)
+				users.DELETE("/:id", middleware.RequireAdminOrSameUser(), userController.Delete)
 			}
 
 			// Book routes
@@ -56,13 +56,13 @@ func SetupRoutes(
 				books.GET("", bookController.GetAll)
 
 				// All authenticated users can get a book by ID (filtered by role in controller)
-				books.GET("/:id", bookController.GetByID)
+				books.GET("/:id", middleware.RequireAdminOrOwner("id"), bookController.GetByID)
 
 				// All authenticated users can update a book (filtered by role in controller)
-				books.PUT("/:id", bookController.Update)
+				books.PUT("/:id", middleware.RequireAdminOrOwner("id"), bookController.Update)
 
 				// All authenticated users can delete a book (filtered by role in controller)
-				books.DELETE("/:id", bookController.Delete)
+				books.DELETE("/:id", middleware.RequireAdminOrOwner("id"), bookController.Delete)
 
 				// Book-User operations
 				books.POST("/:id/transfer", bookUserController.TransferBookOwnership)

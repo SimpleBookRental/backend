@@ -46,18 +46,20 @@ func (s *UserService) Register(userCreate *models.UserCreate) (*models.User, err
 		return nil, errors.New("email already exists")
 	}
 
+	// Always create user with USER role (do not allow creating ADMIN via API)
+	role := models.UserRole
+
 	// Hash password
 	hashedPassword, err := utils.HashPassword(userCreate.Password)
 	if err != nil {
 		return nil, fmt.Errorf("error hashing password: %w", err)
 	}
 
-	// Create user with default USER role
 	user := &models.User{
 		Name:     userCreate.Name,
 		Email:    userCreate.Email,
 		Password: hashedPassword,
-		Role:     models.UserRole,
+		Role:     role,
 	}
 
 	err = s.userRepo.Create(user)
@@ -103,6 +105,9 @@ func (s *UserService) Update(id string, userUpdate *models.UserUpdate) (*models.
 	if user == nil {
 		return nil, errors.New("user not found")
 	}
+
+	// Do not allow changing role via API (role is immutable through update)
+	// (No-op: role cannot be changed by user update)
 
 	// Update fields if provided
 	if userUpdate.Name != "" {

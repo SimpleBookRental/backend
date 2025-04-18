@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/SimpleBookRental/backend/internal/middleware"
 	"github.com/SimpleBookRental/backend/internal/mocks"
 	"github.com/SimpleBookRental/backend/internal/models"
 	"github.com/gin-gonic/gin"
@@ -345,4 +346,27 @@ func TestUserController_Login_ServiceError(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestUserController_GetByID_Forbidden(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockService := mocks.NewMockUserServiceInterface(ctrl)
+	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	controller := NewUserController(mockService, mockTokenRepo)
+	router := setupGinUser()
+	// Setup middleware RequireAdminOrSameUser
+	router.GET("/users/:id", func(c *gin.Context) {
+		c.Set("user_id", "other-user-id")
+		c.Set("role", "USER")
+	}, 
+	middleware.RequireAdminOrSameUser(), controller.GetByID)
+
+	// No need mockService.EXPECT().GetByID, middleware reject this request before it hit controller.
+
+	req, _ := http.NewRequest("GET", "/users/target-user-id", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusForbidden, w.Code)
 }
