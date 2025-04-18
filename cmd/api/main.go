@@ -53,10 +53,6 @@ func main() {
 
 	// Initialize services
 	userService := services.NewUserService(userRepo, bookRepo, tokenRepo)
-
-	// Initialize Redis cache
-	redisCache := cache.NewRedisCache(cfg.Cache.RedisAddress, cfg.Cache.RedisTTLSeconds)
-
 	bookService := services.NewBookService(bookRepo, userRepo)
 	tokenService := services.NewTokenService(tokenRepo, userRepo)
 	bookUserService := services.NewBookUserService(txManager, bookRepo, userRepo)
@@ -80,8 +76,12 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}))
 
+	// Initialize Redis cache
+	redisCache := cache.NewRedisCache(cfg.Cache.RedisAddress, cfg.Cache.RedisTTLSeconds)
+
 	// Setup routes
-	routes.SetupRoutes(router, userController, bookController, tokenController, bookUserController, tokenRepo, userRepo, redisCache, cfg.Cache.RedisTTLSeconds)
+	routes.SetupRoutes(router, userController, bookController, tokenController,
+		bookUserController, tokenRepo, userRepo, redisCache, cfg.Cache.RedisTTLSeconds)
 
 	// Start server
 	serverAddr := fmt.Sprintf(":%s", cfg.Server.Port)

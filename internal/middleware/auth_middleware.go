@@ -12,7 +12,9 @@ import (
 )
 
 // AuthMiddleware validates JWT tokens
-func AuthMiddleware(tokenRepo repositories.TokenRepositoryInterface, userRepo repositories.UserRepositoryInterface) gin.HandlerFunc {
+func AuthMiddleware(tokenRepo repositories.TokenRepositoryInterface,
+	userRepo repositories.UserRepositoryInterface) gin.HandlerFunc {
+
 	return func(c *gin.Context) {
 		// Get authorization header
 		authHeader := c.GetHeader("Authorization")

@@ -100,5 +100,5 @@ help:
 	@echo "  make test-coverage - Run tests with coverage report"
 	@echo "  make start        - Build and start services"
 	@echo "  make mock         - Generate mock files for testing"
-	@echo "  make swagger      - Generate swagger.yaml from annotated code (requires swag, see README.md)"
+	@echo "  make swagger      - Generate swagger.yaml from annotated code"
 	@echo "  make help         - Show this help"
