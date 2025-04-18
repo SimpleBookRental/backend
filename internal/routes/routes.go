@@ -23,12 +23,9 @@ func SetupRoutes(
 	// API v1 group
 	v1 := router.Group("/api/v1")
 	{
-		// Public routes (no authentication required)
-		// User creation
-		v1.POST("/users", userController.Create)
-
 		// Auth routes
 		v1.POST("/login", userController.Login)
+		v1.POST("/register", userController.Register)
 		v1.POST("/refresh-token", tokenController.RefreshToken)
 		v1.POST("/logout", tokenController.Logout)
 

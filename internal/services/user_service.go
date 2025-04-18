@@ -35,8 +35,8 @@ func NewUserService(
 	return &UserService{userRepo: userRepo, bookRepo: bookRepo, tokenRepo: tokenRepo}
 }
 
-// Create creates a new user
-func (s *UserService) Create(userCreate *models.UserCreate) (*models.User, error) {
+// Register registers a new user
+func (s *UserService) Register(userCreate *models.UserCreate) (*models.User, error) {
 	// Check if email already exists
 	existingUser, err := s.userRepo.FindByEmail(userCreate.Email)
 	if err != nil {

@@ -7,7 +7,7 @@ import (
 
 // UserServiceInterface defines the interface for user service
 type UserServiceInterface interface {
-	Create(userCreate *models.UserCreate) (*models.User, error)
+	Register(userCreate *models.UserCreate) (*models.User, error)
 	GetByID(id string) (*models.User, error)
 	GetAll() ([]models.User, error)
 	Update(id string, userUpdate *models.UserUpdate) (*models.User, error)

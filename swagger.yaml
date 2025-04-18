@@ -573,6 +573,32 @@ paths:
       summary: Refresh token
       tags:
       - Auth
+  /api/v1/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user
+      parameters:
+      - description: User register payload
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.UserCreate'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.ErrorResponse'
+      summary: Register user
+      tags:
+      - Auth
   /api/v1/users:
     get:
       description: Get all users
@@ -592,31 +618,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Get all users
-      tags:
-      - Users
-    post:
-      consumes:
-      - application/json
-      description: Create a new user
-      parameters:
-      - description: User create payload
-        in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.UserCreate'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.User'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_SimpleBookRental_backend_internal_models.ErrorResponse'
-      summary: Create user
       tags:
       - Users
   /api/v1/users/{id}:

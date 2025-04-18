@@ -21,14 +21,14 @@ func setupGinUser() *gin.Engine {
 	return gin.New()
 }
 
-func TestUserController_Create_Success(t *testing.T) {
+func TestUserController_Register_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockService := mocks.NewMockUserServiceInterface(ctrl)
 	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
 	controller := NewUserController(mockService, mockTokenRepo)
 	router := setupGinUser()
-	router.POST("/users", controller.Create)
+	router.POST("/register", controller.Register)
 
 	reqBody := models.UserCreate{
 		Name:     "Test User",
@@ -40,10 +40,10 @@ func TestUserController_Create_Success(t *testing.T) {
 		Name:  "Test User",
 		Email: "test@example.com",
 	}
-	mockService.EXPECT().Create(&reqBody).Return(expectedUser, nil)
+	mockService.EXPECT().Register(&reqBody).Return(expectedUser, nil)
 
 	body, _ := json.Marshal(reqBody)
-	req, _ := http.NewRequest("POST", "/users", bytes.NewBuffer(body))
+	req, _ := http.NewRequest("POST", "/register", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
@@ -51,17 +51,17 @@ func TestUserController_Create_Success(t *testing.T) {
 	assert.Equal(t, http.StatusCreated, w.Code)
 }
 
-func TestUserController_Create_BadRequest(t *testing.T) {
+func TestUserController_Register_BadRequest(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockService := mocks.NewMockUserServiceInterface(ctrl)
 	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
 	controller := NewUserController(mockService, mockTokenRepo)
 	router := setupGinUser()
-	router.POST("/users", controller.Create)
+	router.POST("/register", controller.Register)
 
 	// Invalid JSON
-	req, _ := http.NewRequest("POST", "/users", bytes.NewBuffer([]byte("{invalid")))
+	req, _ := http.NewRequest("POST", "/register", bytes.NewBuffer([]byte("{invalid")))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
@@ -69,24 +69,24 @@ func TestUserController_Create_BadRequest(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
-func TestUserController_Create_ServiceError(t *testing.T) {
+func TestUserController_Register_ServiceError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockService := mocks.NewMockUserServiceInterface(ctrl)
 	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
 	controller := NewUserController(mockService, mockTokenRepo)
 	router := setupGinUser()
-	router.POST("/users", controller.Create)
+	router.POST("/register", controller.Register)
 
 	reqBody := models.UserCreate{
 		Name:     "Test User",
 		Email:    "test@example.com",
 		Password: "password123",
 	}
-	mockService.EXPECT().Create(&reqBody).Return(nil, errors.New("service error"))
+	mockService.EXPECT().Register(&reqBody).Return(nil, errors.New("service error"))
 
 	body, _ := json.Marshal(reqBody)
-	req, _ := http.NewRequest("POST", "/users", bytes.NewBuffer(body))
+	req, _ := http.NewRequest("POST", "/register", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)

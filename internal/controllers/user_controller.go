@@ -20,24 +20,24 @@ func NewUserController(userService services.UserServiceInterface, tokenRepo repo
 }
 
 //
-// CreateUser godoc
-// @Summary      Create user
-// @Description  Create a new user
-// @Tags         Users
+// RegisterUser godoc
+// @Summary      Register user
+// @Description  Register a new user
+// @Tags         Auth
 // @Accept       json
 // @Produce      json
-// @Param        user  body      models.UserCreate  true  "User create payload"
+// @Param        user  body      models.UserCreate  true  "User register payload"
 // @Success      201   {object}  models.User
 // @Failure      400   {object}  models.ErrorResponse
-// @Router       /api/v1/users [post]
-func (c *UserController) Create(ctx *gin.Context) {
+// @Router       /api/v1/register [post]
+func (c *UserController) Register(ctx *gin.Context) {
 	var userCreate models.UserCreate
 	if err := ctx.ShouldBindJSON(&userCreate); err != nil {
 		utils.BadRequest(ctx, err.Error())
 		return
 	}
 
-	user, err := c.userService.Create(&userCreate)
+	user, err := c.userService.Register(&userCreate)
 	if err != nil {
 		utils.BadRequest(ctx, err.Error())
 		return
