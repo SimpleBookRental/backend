@@ -10,17 +10,29 @@ import (
 	"github.com/SimpleBookRental/backend/pkg/utils"
 )
 
-// UserService handles business logic for users
+/*
+UserService handles business logic for users.
+Now includes bookRepo and tokenRepo to support cascade delete of user's books and tokens.
+*/
 type UserService struct {
-	userRepo repositories.UserRepositoryInterface
+	userRepo  repositories.UserRepositoryInterface
+	bookRepo  repositories.BookRepositoryInterface
+	tokenRepo repositories.TokenRepositoryInterface
 }
 
 // Ensure UserService implements UserServiceInterface
 var _ UserServiceInterface = (*UserService)(nil)
 
-// NewUserService creates a new user service
-func NewUserService(userRepo repositories.UserRepositoryInterface) *UserService {
-	return &UserService{userRepo: userRepo}
+/*
+NewUserService creates a new user service.
+Now requires bookRepo and tokenRepo for cascade delete.
+*/
+func NewUserService(
+	userRepo repositories.UserRepositoryInterface,
+	bookRepo repositories.BookRepositoryInterface,
+	tokenRepo repositories.TokenRepositoryInterface,
+) *UserService {
+	return &UserService{userRepo: userRepo, bookRepo: bookRepo, tokenRepo: tokenRepo}
 }
 
 // Create creates a new user
@@ -126,7 +138,7 @@ func (s *UserService) Update(id string, userUpdate *models.UserUpdate) (*models.
 	return user, nil
 }
 
-// Delete deletes a user
+// Delete deletes a user and all books and tokens belonging to that user
 func (s *UserService) Delete(id string) error {
 	if !utils.IsValidUUID(id) {
 		return errors.New("invalid user ID")
@@ -138,6 +150,16 @@ func (s *UserService) Delete(id string) error {
 	}
 	if user == nil {
 		return errors.New("user not found")
+	}
+
+	// Delete all books belonging to the user before deleting the user
+	if err := s.bookRepo.DeleteByUserID(id); err != nil {
+		return fmt.Errorf("error deleting user's books: %w", err)
+	}
+
+	// Delete all tokens belonging to the user before deleting the user
+	if err := s.tokenRepo.DeleteByUserID(id); err != nil {
+		return fmt.Errorf("error deleting user's tokens: %w", err)
 	}
 
 	return s.userRepo.Delete(id)

@@ -15,7 +15,9 @@ func TestUserService_Create_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
-	service := NewUserService(mockUserRepo)
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
+	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	service := NewUserService(mockUserRepo, mockBookRepo, mockTokenRepo)
 
 	userCreate := &models.UserCreate{
 		Name:     "Test User",
@@ -34,7 +36,9 @@ func TestUserService_Create_EmailExists(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
-	service := NewUserService(mockUserRepo)
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
+	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	service := NewUserService(mockUserRepo, mockBookRepo, mockTokenRepo)
 
 	userCreate := &models.UserCreate{
 		Name:     "Test User",
@@ -52,7 +56,9 @@ func TestUserService_Create_RepoError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
-	service := NewUserService(mockUserRepo)
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
+	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	service := NewUserService(mockUserRepo, mockBookRepo, mockTokenRepo)
 
 	userCreate := &models.UserCreate{
 		Name:     "Test User",
@@ -70,7 +76,9 @@ func TestUserService_GetByID_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
-	service := NewUserService(mockUserRepo)
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
+	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	service := NewUserService(mockUserRepo, mockBookRepo, mockTokenRepo)
 
 	user := &models.User{ID: "11111111-1111-1111-1111-111111111111"}
 	mockUserRepo.EXPECT().FindByID(user.ID).Return(user, nil)
@@ -84,7 +92,9 @@ func TestUserService_GetByID_InvalidID(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
-	service := NewUserService(mockUserRepo)
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
+	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	service := NewUserService(mockUserRepo, mockBookRepo, mockTokenRepo)
 
 	got, err := service.GetByID("invalid")
 	assert.Nil(t, got)
@@ -95,7 +105,9 @@ func TestUserService_GetByID_NotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
-	service := NewUserService(mockUserRepo)
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
+	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	service := NewUserService(mockUserRepo, mockBookRepo, mockTokenRepo)
 
 	mockUserRepo.EXPECT().FindByID("11111111-1111-1111-1111-111111111111").Return(nil, nil)
 
@@ -108,7 +120,9 @@ func TestUserService_GetAll_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
-	service := NewUserService(mockUserRepo)
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
+	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	service := NewUserService(mockUserRepo, mockBookRepo, mockTokenRepo)
 
 	users := []models.User{{ID: "1"}, {ID: "2"}}
 	mockUserRepo.EXPECT().FindAll().Return(users, nil)
@@ -122,7 +136,9 @@ func TestUserService_Update_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
-	service := NewUserService(mockUserRepo)
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
+	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	service := NewUserService(mockUserRepo, mockBookRepo, mockTokenRepo)
 
 	user := &models.User{ID: validUUID(), Name: "Old"}
 	userUpdate := &models.UserUpdate{Name: "New"}
@@ -138,7 +154,9 @@ func TestUserService_Update_EmailExists(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
-	service := NewUserService(mockUserRepo)
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
+	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	service := NewUserService(mockUserRepo, mockBookRepo, mockTokenRepo)
 
 	user := &models.User{ID: validUUID(), Email: "old@example.com"}
 	userUpdate := &models.UserUpdate{Email: "new@example.com"}
@@ -154,7 +172,9 @@ func TestUserService_Update_NotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
-	service := NewUserService(mockUserRepo)
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
+	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	service := NewUserService(mockUserRepo, mockBookRepo, mockTokenRepo)
 
 	mockUserRepo.EXPECT().FindByID("11111111-1111-1111-1111-111111111111").Return(nil, nil)
 
@@ -167,10 +187,14 @@ func TestUserService_Delete_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
-	service := NewUserService(mockUserRepo)
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
+	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	service := NewUserService(mockUserRepo, mockBookRepo, mockTokenRepo)
 
 	user := &models.User{ID: "11111111-1111-1111-1111-111111111111"}
 	mockUserRepo.EXPECT().FindByID(user.ID).Return(user, nil)
+	mockBookRepo.EXPECT().DeleteByUserID(user.ID).Return(nil)
+	mockTokenRepo.EXPECT().DeleteByUserID(user.ID).Return(nil)
 	mockUserRepo.EXPECT().Delete(user.ID).Return(nil)
 
 	err := service.Delete(user.ID)
@@ -181,7 +205,9 @@ func TestUserService_Delete_NotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
-	service := NewUserService(mockUserRepo)
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
+	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
+	service := NewUserService(mockUserRepo, mockBookRepo, mockTokenRepo)
 
 	mockUserRepo.EXPECT().FindByID("11111111-1111-1111-1111-111111111111").Return(nil, nil)
 
@@ -193,8 +219,9 @@ func TestUserService_Login_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
 	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
-	service := NewUserService(mockUserRepo)
+	service := NewUserService(mockUserRepo, mockBookRepo, mockTokenRepo)
 
 	hashed, _ := utils.HashPassword("password123")
 	user := &models.User{
@@ -219,8 +246,9 @@ func TestUserService_Login_InvalidPassword(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
 	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
-	service := NewUserService(mockUserRepo)
+	service := NewUserService(mockUserRepo, mockBookRepo, mockTokenRepo)
 
 	user := &models.User{
 		ID:       validUUID(),
@@ -242,8 +270,9 @@ func TestUserService_Login_UserNotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockUserRepo := mocks.NewMockUserRepositoryInterface(ctrl)
+	mockBookRepo := mocks.NewMockBookRepositoryInterface(ctrl)
 	mockTokenRepo := mocks.NewMockTokenRepositoryInterface(ctrl)
-	service := NewUserService(mockUserRepo)
+	service := NewUserService(mockUserRepo, mockBookRepo, mockTokenRepo)
 
 	userLogin := &models.UserLogin{
 		Email:    "notfound@example.com",

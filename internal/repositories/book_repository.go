@@ -86,7 +86,16 @@ func (r *BookRepository) Update(book *models.Book) error {
 	return r.db.Save(book).Error
 }
 
-// Delete deletes a book
+/*
+Delete deletes a book by its ID.
+*/
 func (r *BookRepository) Delete(id string) error {
 	return r.db.Delete(&models.Book{}, "id = ?", id).Error
+}
+
+/*
+DeleteByUserID deletes all books belonging to a specific user.
+*/
+func (r *BookRepository) DeleteByUserID(userID string) error {
+	return r.db.Delete(&models.Book{}, "user_id = ?", userID).Error
 }

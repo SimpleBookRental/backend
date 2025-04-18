@@ -81,6 +81,13 @@ func (r *TokenRepository) RevokeAllUserTokens(userID string) error {
 		}).Error
 }
 
+/*
+DeleteByUserID deletes all tokens belonging to a specific user.
+*/
+func (r *TokenRepository) DeleteByUserID(userID string) error {
+	return r.db.Delete(&models.IssuedToken{}, "user_id = ?", userID).Error
+}
+
 // CleanupExpiredTokens removes expired tokens
 func (r *TokenRepository) CleanupExpiredTokens() error {
 	return r.db.Where("expires_at < ?", time.Now()).Delete(&models.IssuedToken{}).Error

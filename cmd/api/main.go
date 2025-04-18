@@ -52,7 +52,7 @@ func main() {
 	txManager := repositories.NewTransactionManager(db)
 
 	// Initialize services
-	userService := services.NewUserService(userRepo)
+	userService := services.NewUserService(userRepo, bookRepo, tokenRepo)
 
 	// Initialize Redis cache
 	redisCache := cache.NewRedisCache(cfg.Cache.RedisAddress, cfg.Cache.RedisTTLSeconds)
