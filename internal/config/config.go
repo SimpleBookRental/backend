@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 
@@ -40,7 +41,9 @@ type CacheConfig struct {
 func LoadConfig() (*Config, error) {
 	err := godotenv.Load()
 	if err != nil {
-		return nil, fmt.Errorf("error loading .env file: %w", err)
+		log.Printf("====> no .env file found, default config will be used: %v <====", err)
+	} else {
+		log.Println("====> .env file loaded successfully <====")
 	}
 
 	ttlSeconds, err := strconv.Atoi(getEnv("REDIS_CACHE_TTL_SECONDS", "30"))
