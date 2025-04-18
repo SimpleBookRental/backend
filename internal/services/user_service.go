@@ -151,6 +151,10 @@ func (s *UserService) Delete(id string) error {
 	if user == nil {
 		return errors.New("user not found")
 	}
+	// Do not allow deleting ADMIN user
+	if user.Role == "ADMIN" {
+		return errors.New("cannot delete user with ADMIN role")
+	}
 
 	// Delete all books belonging to the user before deleting the user
 	if err := s.bookRepo.DeleteByUserID(id); err != nil {
