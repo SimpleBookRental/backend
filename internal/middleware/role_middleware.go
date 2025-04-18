@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"github.com/gin-gonic/gin"
+
 	"github.com/SimpleBookRental/backend/internal/models"
 )
 
@@ -33,38 +34,6 @@ func RequireRole(requiredRole string) gin.HandlerFunc {
 	}
 }
 
-// RequireAdminOrOwner middleware checks if the user is an admin or the owner of the resource (book)
-func RequireAdminOrOwner(paramUserID string) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		role, roleExists := c.Get("role")
-		userID, userIDExists := c.Get("user_id")
-		if !roleExists || !userIDExists {
-			c.AbortWithStatusJSON(401, gin.H{
-				"success": false,
-				"message": "Unauthorized: user information not found in context",
-				"data":    nil,
-			})
-			return
-		}
-		// If admin, allow
-		if role == models.AdminRole {
-			c.Next()
-			return
-		}
-		// If owner, allow
-		if c.Param(paramUserID) == userID {
-			c.Next()
-			return
-		}
-		// Otherwise, deny
-		c.AbortWithStatusJSON(403, gin.H{
-			"success": false,
-			"message": "Forbidden: insufficient permissions",
-			"data":    nil,
-		})
-	}
-}
-
 // RequireAdmin middleware checks if the user is an admin
 func RequireAdmin() gin.HandlerFunc {
 	return RequireRole(models.AdminRole)
@@ -81,7 +50,7 @@ func RequireAdminOrSameUser() gin.HandlerFunc {
 		// Get role and user ID from context
 		role, roleExists := c.Get("role")
 		userID, userIDExists := c.Get("user_id")
-		
+
 		// Check if role and user ID exist in context
 		if !roleExists || !userIDExists {
 			c.AbortWithStatusJSON(401, gin.H{
@@ -100,7 +69,7 @@ func RequireAdminOrSameUser() gin.HandlerFunc {
 
 		// Get the requested user ID from the URL parameter
 		requestedUserID := c.Param("id")
-		
+
 		// If no user ID in URL or it's the same user, allow access
 		if requestedUserID == "" || requestedUserID == userID {
 			c.Next()

@@ -37,6 +37,7 @@ func SetupRoutes(
 			// User routes
 			users := auth.Group("users")
 			{
+				// It's simple, can be filtered in middleware layer
 				users.GET("", middleware.RequireAdmin(), userController.GetAll)
 				users.GET("/:id", middleware.RequireAdminOrSameUser(), userController.GetByID)
 				users.PUT("/:id", middleware.RequireAdminOrSameUser(), userController.Update)
@@ -49,20 +50,12 @@ func SetupRoutes(
 				// Apply cache middleware to GET requests
 				books.Use(middleware.CacheMiddleware(redisCache, cacheTTL))
 
-				// All authenticated users can create books
+				// It's complex, must be filtered by role & user_id in controller layer
 				books.POST("", bookController.Create)
-
-				// All authenticated users can get all books (filtered by role in controller)
 				books.GET("", bookController.GetAll)
-
-				// All authenticated users can get a book by ID (filtered by role in controller)
-				books.GET("/:id", middleware.RequireAdminOrOwner("id"), bookController.GetByID)
-
-				// All authenticated users can update a book (filtered by role in controller)
-				books.PUT("/:id", middleware.RequireAdminOrOwner("id"), bookController.Update)
-
-				// All authenticated users can delete a book (filtered by role in controller)
-				books.DELETE("/:id", middleware.RequireAdminOrOwner("id"), bookController.Delete)
+				books.GET("/:id", bookController.GetByID)
+				books.PUT("/:id", bookController.Update)
+				books.DELETE("/:id", bookController.Delete)
 
 				// Book-User operations
 				books.POST("/:id/transfer", bookUserController.TransferBookOwnership)
