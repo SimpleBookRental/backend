@@ -37,6 +37,17 @@ func NewUserService(
 
 // Register registers a new user
 func (s *UserService) Register(userCreate *models.UserCreate) (*models.User, error) {
+	// Validate input
+	if userCreate.Email == "" {
+		return nil, errors.New("email is required")
+	}
+	if userCreate.Name == "" {
+		return nil, errors.New("name is required")
+	}
+	if userCreate.Password == "" {
+		return nil, errors.New("password is required")
+	}
+
 	// Check if email already exists
 	existingUser, err := s.userRepo.FindByEmail(userCreate.Email)
 	if err != nil {
