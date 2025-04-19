@@ -1,4 +1,3 @@
-//
 // @title           Simple Book Rental API
 // @version         1.0.0
 // @description     RESTful API for book rental system (Go, Gin, GORM, Clean Architecture)
@@ -19,10 +18,12 @@ import (
 
 	"github.com/SimpleBookRental/backend/internal/config"
 	"github.com/SimpleBookRental/backend/internal/controllers"
+	"github.com/SimpleBookRental/backend/internal/models"
 	"github.com/SimpleBookRental/backend/internal/repositories"
 	"github.com/SimpleBookRental/backend/internal/routes"
 	"github.com/SimpleBookRental/backend/internal/services"
 	"github.com/SimpleBookRental/backend/pkg/database"
+	"github.com/SimpleBookRental/backend/pkg/utils"
 )
 
 func main() {
@@ -50,6 +51,28 @@ func main() {
 	tokenRepo := repositories.NewTokenRepository(db)
 	txManager := repositories.NewTransactionManager(db)
 
+	// Seed default admin user
+	existingAdmin, err := userRepo.FindByEmail(cfg.Admin.Email)
+	if err != nil {
+		log.Fatalf("Failed to check default admin: %v", err)
+	}
+	if existingAdmin == nil {
+		hashedPassword, err := utils.HashPassword(cfg.Admin.Password)
+		if err != nil {
+			log.Fatalf("Failed to hash default admin password: %v", err)
+		}
+		adminUser := &models.User{
+			Name:     cfg.Admin.Name,
+			Email:    cfg.Admin.Email,
+			Password: hashedPassword,
+			Role:     models.AdminRole,
+		}
+		if err := userRepo.Create(adminUser); err != nil {
+			log.Fatalf("Failed to create default admin: %v", err)
+		}
+		log.Println("Default admin user created")
+	}
+
 	// Initialize services
 	userService := services.NewUserService(userRepo, bookRepo, tokenRepo)
 	bookService := services.NewBookService(bookRepo, userRepo)
@@ -60,7 +83,7 @@ func main() {
 	userController := controllers.NewUserController(userService, tokenRepo)
 	bookController := controllers.NewBookController(bookService)
 	tokenController := controllers.NewTokenController(tokenService)
-	bookUserController := controllers.NewBookUserController(bookUserService)
+	bookUserController := controllers.NewBookUserController(bookUserService, userRepo)
 
 	// Initialize router
 	router := gin.Default()
@@ -74,7 +97,6 @@ func main() {
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
-
 
 	// Setup routes
 	routes.SetupRoutes(router, userController, bookController, tokenController,

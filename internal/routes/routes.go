@@ -38,7 +38,7 @@ func SetupRoutes(
 				users.GET("", middleware.RequireAdmin(), userController.GetAll)
 				users.GET("/:id", middleware.RequireAdminOrSameUser(), userController.GetByID)
 				users.PUT("/:id", middleware.RequireAdminOrSameUser(), userController.Update)
-				users.DELETE("/:id", middleware.RequireAdminOrSameUser(), userController.Delete)
+			users.DELETE("/:id", middleware.RequireAdmin(), userController.Delete)
 			}
 
 			// Book routes

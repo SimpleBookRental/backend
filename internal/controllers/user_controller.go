@@ -110,6 +110,21 @@ func (c *UserController) Update(ctx *gin.Context) {
 		utils.BadRequest(ctx, err.Error())
 		return
 	}
+	// Enforce email change restrictions
+	ctxUserID, ctxUserIDExists := ctx.Get("user_id")
+	ctxRole, _ := ctx.Get("role")
+	if userUpdate.Email != "" {
+		// Regular users cannot change their own email
+		if ctxRole == models.UserRole {
+			utils.Forbidden(ctx, "You are not allowed to change your email")
+			return
+		}
+		// Admin cannot change their own email
+		if ctxRole == models.AdminRole && ctxUserIDExists && ctxUserID.(string) == id {
+			utils.Forbidden(ctx, "Admin cannot change their own email")
+			return
+		}
+	}
 
 	user, err := c.userService.Update(id, &userUpdate)
 	if err != nil {

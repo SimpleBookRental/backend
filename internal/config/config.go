@@ -8,10 +8,19 @@ import (
 	"github.com/joho/godotenv"
 )
 
+ 
 // Config holds all configuration for the application
 type Config struct {
 	Database DatabaseConfig
 	Server   ServerConfig
+	Admin    AdminConfig
+}
+
+// AdminConfig holds default admin credentials
+type AdminConfig struct {
+	Name     string
+	Email    string
+	Password string
 }
 
 // DatabaseConfig holds database configuration
@@ -49,6 +58,11 @@ func LoadConfig() (*Config, error) {
 		},
 		Server: ServerConfig{
 			Port: getEnv("SERVER_PORT", "3000"),
+		},
+		Admin: AdminConfig{
+			Name:     getEnv("ADMIN_NAME", "Admin"),
+			Email:    getEnv("ADMIN_EMAIL", "admin@example.com"),
+			Password: getEnv("ADMIN_PASSWORD", "admin123"),
 		},
 	}, nil
 }

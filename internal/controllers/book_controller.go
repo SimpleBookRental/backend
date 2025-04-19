@@ -89,21 +89,6 @@ func (c *BookController) GetByID(ctx *gin.Context) {
 		return
 	}
 
-	// Get user ID and role from context
-	userID, userIDExists := ctx.Get("user_id")
-	role, roleExists := ctx.Get("role")
-
-	// Apply business logic based on role
-	if roleExists && userIDExists {
-		if role == models.UserRole {
-			// If role is USER, can only view their own books
-			if book.UserID != userID.(string) {
-				utils.Forbidden(ctx, "You do not have permission to view this book")
-				return
-			}
-		}
-		// If role is ADMIN, can view any book
-	}
 
 	utils.OK(ctx, book)
 }
@@ -119,32 +104,11 @@ func (c *BookController) GetByID(ctx *gin.Context) {
 // @Router       /api/v1/books [get]
 // @Security     BearerAuth
 func (c *BookController) GetAll(ctx *gin.Context) {
-	// Get user ID and role from context
-	userID, userIDExists := ctx.Get("user_id")
-	role, roleExists := ctx.Get("role")
-
-	var books []models.Book
-	var err error
-
-	// Apply business logic based on role
-	if roleExists && userIDExists {
-		if role == models.AdminRole {
-			// If role is ADMIN, get all books
-			books, err = c.bookService.GetAll()
-		} else if role == models.UserRole {
-			// If role is USER, only get books of that user
-			books, err = c.bookService.GetByUserID(userID.(string))
-		}
-	} else {
-		// Fallback for tests or when context is not available
-		books, err = c.bookService.GetAll()
-	}
-
+	books, err := c.bookService.GetAll()
 	if err != nil {
 		utils.InternalServerError(ctx, err.Error())
 		return
 	}
-
 	utils.OK(ctx, books)
 }
 

@@ -19,6 +19,29 @@
 - Use `github.com/uber-go/mock` for mocking in unit tests.
 - Use `github.com/swaggo/swag` to generate Swagger documentation from Go annotations.
 
+# Business logic
+
+## Role: ADMIN
+
+- There must be exactly one ADMIN in the system.
+- ADMIN role is created by default during system initialization.
+- The ADMIN is not allowed to change their own role or be reassigned to a different role.
+- The ADMIN can change their own password.
+- The ADMIN is not allowed to change their own email address.
+- The ADMIN has full Create, Read, Update, and Delete (CRUD) permissions on all Users.
+- The ADMIN has full Create, Read, Update, and Delete (CRUD) permissions on all Books.
+
+## Role: USER
+
+- The USER role is assigned to users who register through the system.
+- The USER can create new books.
+- The USER can update or delete only the books they have created.
+- The USER can view (get) all books in the system, including books created by other users.
+- The USER cannot view (get) the list of all users.
+- The USER can transfer ownership of their own books to other USERs.
+- The USER can change their own password.
+- The USER is not allowed to change their own email address.
+
 # Workflow
 
 ## High-Level Problem Solving Strategy
