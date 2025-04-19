@@ -19,6 +19,18 @@
 - Use `github.com/uber-go/mock` for mocking in unit tests.
 - Use `github.com/swaggo/swag` to generate Swagger documentation from Go annotations.
 
+## GORM best practice
+
+When using GORM to change just one field on a model that has preloaded associations, never call Save(model) (or full struct Updates) because GORM will persist all loaded fields—including stale association values. Instead, use a scoped update:
+
+```
+db.Model(&YourModel{}).
+    Where("id = ?", id).
+    Update("field_name", newValue)
+```
+
+This ensures only the intended column is updated and avoids accidentally overwriting preloaded data.
+
 # Business logic
 
 ## Role: ADMIN

@@ -68,9 +68,11 @@ func (s *BookUserService) TransferBookOwnership(bookID, fromUserID, toUserID str
 		}
 
 		// Update book ownership
-		book.UserID = toUserID
-		if err := bookRepoTx.Update(book); err != nil {
-			return fmt.Errorf("error updating book: %w", err)
+		// Perform direct update of user_id on the book record
+		if err := tx.Model(&models.Book{}).
+			Where("id = ?", bookID).
+			Update("user_id", toUserID).Error; err != nil {
+			return fmt.Errorf("error updating book owner: %w", err)
 		}
 
 		return nil
