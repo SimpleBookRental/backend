@@ -37,7 +37,7 @@ clean:
 	$(DOCKER_COMPOSE) down -v
 
 # Restart services
-restart: down up
+restart: clean start
 	@echo "Services restarted"
 
 # Run tests
