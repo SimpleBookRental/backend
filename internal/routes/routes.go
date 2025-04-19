@@ -3,7 +3,6 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 
-	"github.com/SimpleBookRental/backend/internal/cache"
 	"github.com/SimpleBookRental/backend/internal/controllers"
 	"github.com/SimpleBookRental/backend/internal/middleware"
 	"github.com/SimpleBookRental/backend/internal/repositories"
@@ -17,8 +16,6 @@ func SetupRoutes(
 	bookUserController *controllers.BookUserController,
 	tokenRepo *repositories.TokenRepository,
 	userRepo *repositories.UserRepository,
-	redisCache cache.Cache,
-	cacheTTL int,
 ) {
 	// API v1 group
 	v1 := router.Group("/api/v1")
@@ -47,9 +44,6 @@ func SetupRoutes(
 			// Book routes
 			books := auth.Group("books")
 			{
-				// Apply cache middleware to GET requests
-				books.Use(middleware.CacheMiddleware(redisCache, cacheTTL))
-
 				// It's complex, must be filtered by role & user_id in controller layer
 				books.POST("", bookController.Create)
 				books.GET("", bookController.GetAll)
@@ -64,9 +58,6 @@ func SetupRoutes(
 			// Book-User routes
 			bookUsers := auth.Group("book-users")
 			{
-				// Apply cache middleware to GET requests if any (currently only POST)
-				bookUsers.Use(middleware.CacheMiddleware(redisCache, cacheTTL))
-
 				// Create a book with user
 				bookUsers.POST("", bookUserController.CreateBookWithUser)
 			}

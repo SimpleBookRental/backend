@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 
 	"github.com/joho/godotenv"
 )
@@ -13,7 +12,6 @@ import (
 type Config struct {
 	Database DatabaseConfig
 	Server   ServerConfig
-	Cache    CacheConfig
 }
 
 // DatabaseConfig holds database configuration
@@ -31,12 +29,6 @@ type ServerConfig struct {
 	Port string
 }
 
-// CacheConfig holds cache configuration
-type CacheConfig struct {
-	RedisAddress    string
-	RedisTTLSeconds int
-}
-
 // LoadConfig loads configuration from environment variables
 func LoadConfig() (*Config, error) {
 	err := godotenv.Load()
@@ -44,11 +36,6 @@ func LoadConfig() (*Config, error) {
 		log.Printf("====> no .env file found, default config will be used: %v <====", err)
 	} else {
 		log.Println("====> .env file loaded successfully <====")
-	}
-
-	ttlSeconds, err := strconv.Atoi(getEnv("REDIS_CACHE_TTL_SECONDS", "30"))
-	if err != nil {
-		return nil, fmt.Errorf("invalid REDIS_CACHE_TTL_SECONDS value: %w", err)
 	}
 
 	return &Config{
@@ -62,10 +49,6 @@ func LoadConfig() (*Config, error) {
 		},
 		Server: ServerConfig{
 			Port: getEnv("SERVER_PORT", "3000"),
-		},
-		Cache: CacheConfig{
-			RedisAddress:    getEnv("REDIS_ADDRESS", "localhost:6379"),
-			RedisTTLSeconds: ttlSeconds,
 		},
 	}, nil
 }

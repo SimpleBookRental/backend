@@ -75,7 +75,6 @@ mock:
 	@mockgen -destination=internal/mocks/mock_book_repository.go -package=mocks github.com/SimpleBookRental/backend/internal/repositories BookRepositoryInterface
 	@mockgen -destination=internal/mocks/mock_token_repository.go -package=mocks github.com/SimpleBookRental/backend/internal/repositories TokenRepositoryInterface
 	@mockgen -destination=internal/mocks/mock_transaction_manager.go -package=mocks github.com/SimpleBookRental/backend/internal/repositories TransactionManagerInterface
-	@mockgen -destination=internal/mocks/mock_cache.go -package=mocks github.com/SimpleBookRental/backend/internal/cache Cache
 
 # Generate swagger.yaml from annotated code using swaggo/swag
 swagger:
