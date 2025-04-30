@@ -7,7 +7,6 @@ Book Rental System is a RESTful API that allows users to browse, borrow, and ret
 - **Backend Language**: Golang
 - **Database**: PostgreSQL (running in Docker container)
 - **Web Framework**: Gin
-- **SQL Interface**: SQLC (for generating type-safe code from SQL)
 - **Database Migration**: go-migrate
 - **Testing**: GoMock for mocking framework
 - **Configuration**: .env file
@@ -80,12 +79,7 @@ Book Rental System is a RESTful API that allows users to browse, borrow, and ret
    make migrate-up
    ```
 
-6. Generate SQLC code:
-   ```bash
-   make sqlc
-   ```
-
-7. Run development server:
+6. Run development server:
    ```bash
    make run
    ```
@@ -121,8 +115,6 @@ See the full API documentation in [docs/prd.md](docs/prd.md).
 │   ├── auth/             # Authentication and authorization
 │   ├── config/           # Configuration
 │   └── logger/           # Logging
-├── sqlc/                 # SQLC configuration and queries
-│   └── queries/          # SQL queries
 ├── .env.example          # Example configuration file
 ├── docker-compose.yml    # Docker Compose configuration
 ├── Dockerfile            # Docker configuration
@@ -137,7 +129,6 @@ See the full API documentation in [docs/prd.md](docs/prd.md).
 - `make test`: Run tests
 - `make migrate-up`: Run database migrations
 - `make migrate-down`: Rollback database migrations
-- `make sqlc`: Generate SQLC code
 - `make mock`: Generate mocks for testing
 - `make build`: Build production binary
 - `make docker-build`: Build Docker image
