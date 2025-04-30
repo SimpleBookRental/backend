@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14-alpine
+    container_name: book_rental_postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-book_rental}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - book_rental_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: book_rental_api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SERVER_HOST: ${SERVER_HOST:-0.0.0.0}
+      SERVER_PORT: ${SERVER_PORT:-8080}
+      ENV: ${ENV:-development}
+      SERVER_MODE: ${SERVER_MODE:-debug}
+      SERVER_READ_TIMEOUT: ${SERVER_READ_TIMEOUT:-10s}
+      SERVER_WRITE_TIMEOUT: ${SERVER_WRITE_TIMEOUT:-10s}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_NAME: ${DB_NAME:-book_rental}
+      DB_SSL_MODE: ${DB_SSL_MODE:-disable}
+      DB_RUN_MIGRATIONS: ${DB_RUN_MIGRATIONS:-true}
+      JWT_SECRET: ${JWT_SECRET:-your_jwt_secret_key_here}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-24h}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-168h}
+      LOG_LEVEL: ${LOG_LEVEL:-debug}
+      LOG_FORMAT: ${LOG_FORMAT:-json}
+      DEFAULT_RENTAL_DAYS: ${DEFAULT_RENTAL_DAYS:-14}
+      MAX_RENTAL_EXTENSION_DAYS: ${MAX_RENTAL_EXTENSION_DAYS:-7}
+      LATE_FEE_PER_DAY: ${LATE_FEE_PER_DAY:-1.00}
+      RATE_LIMIT_REQUESTS: ${RATE_LIMIT_REQUESTS:-100}
+      RATE_LIMIT_DURATION: ${RATE_LIMIT_DURATION:-1m}
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    networks:
+      - book_rental_network
+    restart: unless-stopped
+
+networks:
+  book_rental_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
