@@ -1,4 +1,4 @@
-.PHONY: setup docker-db migrate-up migrate-down sqlc mock test run build docker-build docker-run
+.PHONY: setup docker-db migrate-up migrate-down mock test run build docker-build docker-run
 
 # Default target
 all: setup
@@ -25,11 +25,6 @@ migrate-up:
 migrate-down:
 	@echo "Rolling back database migrations..."
 	@migrate -path migrations -database "postgres://postgres:postgres@localhost:5432/book_rental?sslmode=disable" down
-
-# Generate SQLC code
-sqlc:
-	@echo "Generating SQLC code..."
-	@sqlc generate -f sqlc/sqlc.yaml
 
 # Generate mocks for testing
 mock:
