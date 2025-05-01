@@ -1,0 +1,2 @@
+- Here is the PRD file: docs/prd.md
+- All logic and implementation must trace back to the PRD. Reject anything not explicitly required. Always validate against the PRD before coding.

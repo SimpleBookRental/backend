@@ -29,12 +29,12 @@ type ServerConfig struct {
 
 // DatabaseConfig holds database configuration
 type DatabaseConfig struct {
-	Host         string
-	Port         int
-	User         string
-	Password     string
-	Name         string
-	SSLMode      string
+	Host          string
+	Port          int
+	User          string
+	Password      string
+	Name          string
+	SSLMode       string
 	RunMigrations bool
 }
 
@@ -53,9 +53,9 @@ type LoggingConfig struct {
 
 // RentalConfig holds rental configuration
 type RentalConfig struct {
-	DefaultRentalDays       int
-	MaxRentalExtensionDays  int
-	LateFeePerDay           float64
+	DefaultRentalDays      int
+	MaxRentalExtensionDays int
+	LateFeePerDay          float64
 }
 
 // RateLimitConfig holds rate limiting configuration
@@ -69,18 +69,38 @@ func Load() (*Config, error) {
 	viper.SetConfigName(".env")
 	viper.SetConfigType("env")
 	viper.AddConfigPath(".")
-	viper.AutomaticEnv()
-
+	
 	// Set defaults
 	setDefaults()
-
+	
+	// Map environment variables (important to do this BEFORE reading config file)
+	viper.SetEnvPrefix("")
+	viper.AutomaticEnv()
+	
+	// Explicitly bind environment variables
+	viper.BindEnv("DB_HOST")
+	viper.BindEnv("DB_PORT")
+	viper.BindEnv("DB_USER")
+	viper.BindEnv("DB_PASSWORD")
+	viper.BindEnv("DB_NAME")
+	viper.BindEnv("DB_SSL_MODE")
+	viper.BindEnv("SERVER_HOST")
+	viper.BindEnv("SERVER_PORT")
+	
 	// Read config file
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 			return nil, fmt.Errorf("error reading config file: %w", err)
 		}
 		// Config file not found, using defaults and env vars
+		fmt.Println("Config file not found, using environment variables and defaults")
 	}
+	
+	// Debug - print actual values being used
+	fmt.Printf("DB_HOST: %s\n", viper.GetString("DB_HOST"))
+	fmt.Printf("DB_PORT: %d\n", viper.GetInt("DB_PORT"))
+	fmt.Printf("SERVER_HOST: %s\n", viper.GetString("SERVER_HOST"))
+	fmt.Printf("SERVER_PORT: %d\n", viper.GetInt("SERVER_PORT"))
 
 	// Parse config
 	config := &Config{
@@ -127,15 +147,15 @@ func Load() (*Config, error) {
 // setDefaults sets default values for configuration
 func setDefaults() {
 	// Server defaults
-	viper.SetDefault("SERVER_HOST", "localhost")
-	viper.SetDefault("SERVER_PORT", 8080)
+	viper.SetDefault("SERVER_HOST", "0.0.0.0")
+	viper.SetDefault("SERVER_PORT", 3000)
 	viper.SetDefault("ENV", "development")
 	viper.SetDefault("SERVER_MODE", "debug")
 	viper.SetDefault("SERVER_READ_TIMEOUT", "10s")
 	viper.SetDefault("SERVER_WRITE_TIMEOUT", "10s")
 
 	// Database defaults
-	viper.SetDefault("DB_HOST", "localhost")
+	viper.SetDefault("DB_HOST", "postgres")
 	viper.SetDefault("DB_PORT", 5432)
 	viper.SetDefault("DB_USER", "postgres")
 	viper.SetDefault("DB_PASSWORD", "postgres")
@@ -164,8 +184,11 @@ func setDefaults() {
 
 // GetDSN returns the database connection string
 func (c *DatabaseConfig) GetDSN() string {
-	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
-		c.Host, c.Port, c.User, c.Password, c.Name, c.SSLMode)
+	// Use URL format which is more reliable
+	dsn := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s",
+		c.User, c.Password, c.Host, c.Port, c.Name, c.SSLMode)
+	fmt.Printf("DEBUG: Using DSN: %s\n", dsn)
+	return dsn
 }
 
 // GetServerAddress returns the server address

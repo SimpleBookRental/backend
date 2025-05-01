@@ -45,14 +45,6 @@ func main() {
 	}
 	defer db.Close()
 
-	// Run database migrations
-	if cfg.Database.RunMigrations {
-		if err := repository.RunMigrations(cfg.Database); err != nil {
-			appLogger.Fatal("Failed to run database migrations", err)
-		}
-		appLogger.Info("Database migrations completed successfully")
-	}
-
 	// Create DBConn
 	dbConn := &repository.DBConn{
 		DB:     db,

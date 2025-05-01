@@ -31,8 +31,11 @@ COPY --from=builder /app/book-rental-api .
 # Copy migrations
 COPY --from=builder /app/migrations ./migrations
 
-# Expose port
-EXPOSE 8080
+# Copy .env file for container
+COPY .env ./.env
+
+# Expose port from environment variable
+EXPOSE ${SERVER_PORT}
 
 # Run the application
-CMD ["./book-rental-api"]
+ENTRYPOINT ["./book-rental-api"]
