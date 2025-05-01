@@ -17,7 +17,7 @@ setup:
 .PHONY: db
 db:
 	@echo "Starting PostgreSQL container..."
-	@docker-compose up -d postgres
+	@docker-compose up -d
 
 # Start PostgreSQL container
 .PHONY: db-down
@@ -53,39 +53,14 @@ test:
 	@echo "Running tests..."
 	@go test -v ./...
 
-# Run development server
-.PHONY: run
-run:
-	@echo "Running development server..."
-	@go run cmd/api/main.go
-
 # Build production binary
 .PHONY: build
 build:
 	@echo "Building production binary..."
 	@go build -o bin/book-rental-api cmd/api/main.go
 
-# Build Docker image
-.PHONY: docker-build
-docker-build:
-	@echo "Building Docker image..."
-	@docker-compose build
-
-# Run Docker containers
-.PHONY: docker-up
-docker-up:
-	@echo "Running Docker containers..."
-	@docker-compose up -d
-
-# Stop Docker containers
-.PHONY: docker-down
-docker-down:
-	@echo "Stopping Docker containers..."
-	@docker-compose down
-
-# Clean up
-.PHONY: clean
-clean:
-	@echo "Cleaning up..."
-	@rm -rf bin
-	@docker-compose down -v
+# Run development server
+.PHONY: run
+run:
+	@echo "Running development server..."
+	@go run cmd/api/main.go

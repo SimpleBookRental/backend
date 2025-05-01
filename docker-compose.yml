@@ -18,20 +18,6 @@ services:
       timeout: 5s
       retries: 5
 
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: book_rental_api
-    depends_on:
-      postgres:
-        condition: service_healthy
-    ports:
-      - "${SERVER_PORT:-3000}:3000"
-    networks:
-      - book_rental_network
-    restart: unless-stopped
-
 networks:
   book_rental_network:
     driver: bridge
