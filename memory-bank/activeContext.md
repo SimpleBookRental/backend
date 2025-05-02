@@ -7,6 +7,7 @@
 - API endpoint handlers development
 - Database schema implementation
 - Authentication system implementation with JWT
+- API documentation with Swagger
 
 ## Recent Changes
 - Initial project setup with Clean Architecture structure
@@ -22,6 +23,12 @@
 - Server configuration and startup sequence implemented
 - Logger integration for system-wide logging
 - Custom IP-based rate limiting implemented for API protection
+- Swagger API documentation implemented:
+  - Added annotations to all handler functions across all domains
+  - Added examples to request/response models
+  - Created ErrorResponse struct for consistent API documentation
+  - Set up Swagger UI endpoint at /swagger/*
+  - Added Makefile commands for Swagger generation and formatting
 
 ## Next Steps
 - Implement user authentication flow (registration, login, JWT)
@@ -32,6 +39,8 @@
 - Implement remaining repository layer implementations
 - Expand service layer with business logic
 - Add comprehensive unit and integration tests
+- Keep Swagger documentation in sync with API changes
+- Add more detailed examples to API documentation
 
 ## Active Decisions
 - Using Clean Architecture with four main layers (domain, repository, service, API)
@@ -43,6 +52,7 @@
 - Graceful server shutdown with context timeout
 - Structured logging throughout application
 - Environment-based configuration management
+- OpenAPI/Swagger for API documentation and exploration
 
 ## Technical Patterns
 - Domain entities with validation logic
@@ -56,6 +66,8 @@
 - Structured error handling with domain-specific types
 - Context-based timeout management
 - In-memory request rate limiting with IP tracking
+- Swagger annotation pattern for API documentation
+- Example-rich model documentation
 
 ## Implementation Guidelines
 - All code comments and documentation in English
@@ -65,3 +77,6 @@
 - Interface mocking for dependency isolation
 - Consistent naming conventions across layers
 - Graceful shutdown handling for production stability
+- Keep Swagger annotations up-to-date with code changes
+- Provide examples for all request/response models
+- Document security requirements for all endpoints

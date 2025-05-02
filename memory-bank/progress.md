@@ -22,6 +22,11 @@
 - Payment processing with fee calculation and transaction handling
 - Reporting and analytics system with popular books, revenue, and overdue tracking
 - IP-based rate limiting system for API protection
+- OpenAPI/Swagger documentation implemented with annotations for all handlers
+  - Detailed endpoint documentation with request/response models
+  - Example values for all model properties
+  - Authentication requirements specified for each endpoint
+  - Makefile commands for easy generation and updating
 
 ## What's Left to Build
 - API endpoints integration testing
@@ -31,7 +36,7 @@
 - User profile management enhancements
 - Admin dashboard features
 - Performance optimizations
-- Documentation updates
+- Additional Swagger documentation enhancements
 
 ## PRD Features Implementation Status
 - ✅ User registration and authentication
@@ -41,15 +46,15 @@
 - ✅ Fee calculation system
 - ✅ Payment processing
 - ✅ Reporting and analytics functionality
-- ❌ API documentation and usage examples (pending)
+- ✅ API documentation and usage examples
 - ❌ Integration tests (pending)
 
 ## Current Status
 - **Phase**: Core Implementation Complete
-- **Progress**: ~80% complete (includes all core business logic implementation)
+- **Progress**: ~85% complete (includes all core business logic and API documentation)
 - **Focus Area**: Testing and integration
 - **Priority**: API integration testing
-- **Key Milestone**: All core business logic implemented
+- **Key Milestone**: All core business logic implemented and documented
 
 ## Known Issues
 - None identified yet - all critical components implemented
@@ -69,3 +74,5 @@
 - Added comprehensive fee calculation based on rental duration
 - Integrated payment processing with rental lifecycle events
 - Implemented custom in-memory rate limiting instead of third-party dependencies
+- Adopted Swagger/OpenAPI for comprehensive API documentation
+- Added example-rich model documentation for better developer experience
