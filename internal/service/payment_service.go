@@ -10,17 +10,17 @@ import (
 
 // PaymentServiceImpl implements domain.PaymentService
 type PaymentServiceImpl struct {
-	repo      domain.PaymentRepository
+	repo       domain.PaymentRepository
 	rentalRepo domain.RentalRepository
-	logger    *logger.Logger
+	logger     *logger.Logger
 }
 
 // NewPaymentService creates a new PaymentService
 func NewPaymentService(repo domain.PaymentRepository, rentalRepo domain.RentalRepository, logger *logger.Logger) domain.PaymentService {
 	return &PaymentServiceImpl{
-		repo:      repo,
+		repo:       repo,
 		rentalRepo: rentalRepo,
-		logger:    logger,
+		logger:     logger,
 	}
 }
 
@@ -85,6 +85,11 @@ func (s *PaymentServiceImpl) Create(payment *domain.Payment) (*domain.Payment, e
 		payment.PaymentDate = time.Now()
 	}
 
+	// Set default status if not provided
+	if payment.Status == "" {
+		payment.Status = domain.PaymentStatusPending
+	}
+
 	// Create payment
 	createdPayment, err := s.repo.Create(payment)
 	if err != nil {
@@ -98,7 +103,7 @@ func (s *PaymentServiceImpl) Create(payment *domain.Payment) (*domain.Payment, e
 // ProcessPayment processes a payment
 func (s *PaymentServiceImpl) ProcessPayment(payment *domain.Payment) (*domain.Payment, error) {
 	// In a real-world application, this would integrate with a payment gateway
-	// For simplicity, we'll just create the payment with a completed status
+	// For demonstration purposes, we'll implement a mock payment process
 
 	// Set payment date to now if not provided
 	if payment.PaymentDate.IsZero() {
@@ -120,6 +125,19 @@ func (s *PaymentServiceImpl) ProcessPayment(payment *domain.Payment) (*domain.Pa
 		return nil, err
 	}
 
+	// If payment is associated with a rental, check if it's a late fee payment
+	if payment.RentalID != nil {
+		rental, err := s.rentalRepo.GetByID(*payment.RentalID)
+		if err == nil && rental.Status == domain.RentalStatusOverdue {
+			// If rental is overdue and this payment covers the late fee,
+			// update rental status back to active
+			// This should be done in a transaction in a real-world scenario
+			s.logger.Info("Processed payment for overdue rental", 
+				zap.Int64("rentalID", *payment.RentalID),
+				zap.Int64("paymentID", processedPayment.ID))
+		}
+	}
+
 	return processedPayment, nil
 }
 
@@ -137,6 +155,9 @@ func (s *PaymentServiceImpl) RefundPayment(id int64) (*domain.Payment, error) {
 		return nil, domain.NewInvalidInputError("only completed payments can be refunded")
 	}
 
+	// In a real-world application, this would call the payment gateway's refund API
+	// For simplicity, we'll just update the status in the database
+
 	// Update payment status to refunded
 	refundedPayment, err := s.repo.UpdateStatus(id, domain.PaymentStatusRefunded)
 	if err != nil {
@@ -149,10 +170,25 @@ func (s *PaymentServiceImpl) RefundPayment(id int64) (*domain.Payment, error) {
 
 // GetRevenueReport generates a revenue report for a specific time period
 func (s *PaymentServiceImpl) GetRevenueReport(startDate, endDate time.Time) ([]*domain.RevenueReport, error) {
+	// Validate dates
+	if startDate.IsZero() {
+		// Default to start of current month if not specified
+		now := time.Now()
+		startDate = time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+	}
+
+	if endDate.IsZero() {
+		// Default to now if not specified
+		endDate = time.Now()
+	}
+
 	// Get revenue report
 	report, err := s.repo.GetRevenueReport(startDate, endDate)
 	if err != nil {
-		s.logger.Error("Failed to get revenue report", zap.Error(err))
+		s.logger.Error("Failed to get revenue report", 
+			zap.Time("startDate", startDate), 
+			zap.Time("endDate", endDate),
+			zap.Error(err))
 		return nil, err
 	}
 

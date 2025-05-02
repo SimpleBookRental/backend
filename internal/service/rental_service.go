@@ -11,19 +11,19 @@ import (
 
 // RentalServiceImpl implements domain.RentalService
 type RentalServiceImpl struct {
-	repo      domain.RentalRepository
-	bookRepo  domain.BookRepository
-	config    config.RentalConfig
-	logger    *logger.Logger
+	repo       domain.RentalRepository
+	bookRepo   domain.BookRepository
+	config     config.RentalConfig
+	logger     *logger.Logger
 }
 
 // NewRentalService creates a new RentalService
 func NewRentalService(repo domain.RentalRepository, bookRepo domain.BookRepository, config config.RentalConfig, logger *logger.Logger) domain.RentalService {
 	return &RentalServiceImpl{
-		repo:      repo,
-		bookRepo:  bookRepo,
-		config:    config,
-		logger:    logger,
+		repo:       repo,
+		bookRepo:   bookRepo,
+		config:     config,
+		logger:     logger,
 	}
 }
 
@@ -34,6 +34,17 @@ func (s *RentalServiceImpl) GetByID(id int64) (*domain.Rental, error) {
 		s.logger.Error("Failed to get rental by ID", zap.Int64("id", id), zap.Error(err))
 		return nil, err
 	}
+
+	// Update status if it's overdue but not marked as overdue
+	if rental.Status == domain.RentalStatusActive && s.IsOverdue(rental) {
+		rental.Status = domain.RentalStatusOverdue
+		rental, err = s.repo.UpdateStatus(rental.ID, domain.RentalStatusOverdue)
+		if err != nil {
+			s.logger.Error("Failed to update rental status to overdue", zap.Int64("id", id), zap.Error(err))
+			// Continue anyway, we'll return the rental with the updated status even if the DB update failed
+		}
+	}
+
 	return rental, nil
 }
 
@@ -44,6 +55,10 @@ func (s *RentalServiceImpl) List(limit, offset int32) ([]*domain.Rental, error) 
 		s.logger.Error("Failed to list rentals", zap.Error(err))
 		return nil, err
 	}
+
+	// Update status for any overdue rentals
+	s.updateOverdueStatus(rentals)
+
 	return rentals, nil
 }
 
@@ -54,6 +69,10 @@ func (s *RentalServiceImpl) ListByUser(userID int64, limit, offset int32) ([]*do
 		s.logger.Error("Failed to list rentals by user", zap.Int64("userID", userID), zap.Error(err))
 		return nil, err
 	}
+
+	// Update status for any overdue rentals
+	s.updateOverdueStatus(rentals)
+
 	return rentals, nil
 }
 
@@ -64,6 +83,10 @@ func (s *RentalServiceImpl) ListByBook(bookID int64, limit, offset int32) ([]*do
 		s.logger.Error("Failed to list rentals by book", zap.Int64("bookID", bookID), zap.Error(err))
 		return nil, err
 	}
+
+	// Update status for any overdue rentals
+	s.updateOverdueStatus(rentals)
+
 	return rentals, nil
 }
 
@@ -74,29 +97,67 @@ func (s *RentalServiceImpl) ListActive(limit, offset int32) ([]*domain.Rental, e
 		s.logger.Error("Failed to list active rentals", zap.Error(err))
 		return nil, err
 	}
+
+	// Update status for any overdue rentals
+	s.updateOverdueStatus(rentals)
+
 	return rentals, nil
 }
 
 // ListOverdue retrieves a list of overdue rentals with pagination
 func (s *RentalServiceImpl) ListOverdue(limit, offset int32) ([]*domain.Rental, error) {
+	// Get current overdue rentals
 	rentals, err := s.repo.ListOverdue(limit, offset)
 	if err != nil {
 		s.logger.Error("Failed to list overdue rentals", zap.Error(err))
 		return nil, err
 	}
+
+	// Check active rentals to see if any have become overdue
+	activeRentals, err := s.repo.ListActive(limit, offset)
+	if err != nil {
+		s.logger.Error("Failed to list active rentals to check for overdue", zap.Error(err))
+		// Continue with the overdue rentals we already have
+	} else {
+		// Find any active rentals that are now overdue
+		var newOverdueRentals []*domain.Rental
+		for _, rental := range activeRentals {
+			if rental.DueDate.Before(time.Now()) {
+				rental.Status = domain.RentalStatusOverdue
+				updatedRental, err := s.repo.UpdateStatus(rental.ID, domain.RentalStatusOverdue)
+				if err != nil {
+					s.logger.Error("Failed to update rental status to overdue", 
+						zap.Int64("id", rental.ID), zap.Error(err))
+					// Continue with the next rental
+					continue
+				}
+				newOverdueRentals = append(newOverdueRentals, updatedRental)
+			}
+		}
+
+		// Add any newly found overdue rentals to the list
+		if len(newOverdueRentals) > 0 {
+			rentals = append(rentals, newOverdueRentals...)
+			// We might exceed the limit now, so trim the list if needed
+			if int32(len(rentals)) > limit {
+				rentals = rentals[:limit]
+			}
+		}
+	}
+
 	return rentals, nil
 }
 
 // Create creates a new rental
 func (s *RentalServiceImpl) Create(rental *domain.Rental) (*domain.Rental, error) {
 	// Check if book exists and is available
-	book, err := s.bookRepo.GetByID(rental.BookID)
+	isAvailable, err := s.IsBookAvailable(rental.BookID)
 	if err != nil {
-		s.logger.Error("Failed to get book by ID", zap.Int64("bookID", rental.BookID), zap.Error(err))
+		s.logger.Error("Failed to check book availability", zap.Int64("bookID", rental.BookID), zap.Error(err))
 		return nil, err
 	}
 
-	if book.AvailableCopies <= 0 {
+	if !isAvailable {
 		return nil, domain.ErrBookNotAvailable
 	}
 
@@ -127,14 +188,14 @@ func (s *RentalServiceImpl) Create(rental *domain.Rental) (*domain.Rental, error
 
 // Return processes the return of a rental
 func (s *RentalServiceImpl) Return(id int64) (*domain.Rental, error) {
-	// Check if rental exists and is active
+	// Check if rental exists and is active or overdue
 	rental, err := s.repo.GetByID(id)
 	if err != nil {
 		s.logger.Error("Failed to get rental by ID", zap.Int64("id", id), zap.Error(err))
 		return nil, err
 	}
 
-	if rental.Status != domain.RentalStatusActive {
+	if rental.Status != domain.RentalStatusActive && rental.Status != domain.RentalStatusOverdue {
 		return nil, domain.ErrRentalNotActive
 	}
 
@@ -216,4 +277,30 @@ func (s *RentalServiceImpl) IsOverdue(rental *domain.Rental) bool {
 
 	// If due date is in the future, it's not overdue
 	return rental.DueDate.Before(time.Now())
+}
+
+// Helper methods
+
+// IsBookAvailable checks if a book is available for rental
+func (s *RentalServiceImpl) IsBookAvailable(bookID int64) (bool, error) {
+	book, err := s.bookRepo.GetByID(bookID)
+	if err != nil {
+		return false, err
+	}
+	return book.AvailableCopies > 0, nil
+}
+
+// updateOverdueStatus updates the status of any overdue rentals in the given list
+func (s *RentalServiceImpl) updateOverdueStatus(rentals []*domain.Rental) {
+	for _, rental := range rentals {
+		if rental.Status == domain.RentalStatusActive && s.IsOverdue(rental) {
+			rental.Status = domain.RentalStatusOverdue
+			_, err := s.repo.UpdateStatus(rental.ID, domain.RentalStatusOverdue)
+			if err != nil {
+				s.logger.Error("Failed to update rental status to overdue", 
+					zap.Int64("id", rental.ID), zap.Error(err))
+				// Continue with the next rental
+			}
+		}
+	}
 }

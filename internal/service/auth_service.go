@@ -143,8 +143,19 @@ func (s *AuthServiceImpl) RefreshToken(refreshToken string) (string, string, err
 
 // Logout logs out a user
 func (s *AuthServiceImpl) Logout(token string) error {
-	// In a real-world application, you might want to invalidate the token
-	// by adding it to a blacklist or using Redis to store invalidated tokens
-	// For simplicity, we'll just return nil
+	// Validate token
+	claims, err := s.jwtService.ValidateToken(token)
+	if err != nil {
+		s.logger.Error("Invalid token", zap.Error(err))
+		return domain.ErrUnauthorized
+	}
+
+	// In a real-world application, you would add the token to a blacklist
+	// For example, store in Redis with expiration set to token's remaining lifetime
+	// For simplicity in this implementation, we'll just return success
+	s.logger.Info("User logged out", zap.Int64("userID", claims.UserID))
 	return nil
 }
+
+// Note: Using the shared hashPassword and verifyPassword functions
+// that are defined in user_service.go

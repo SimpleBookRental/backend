@@ -48,6 +48,8 @@
 - Clear separation between data access and business rules
 - Consistent method signatures across similar entities
 - Status enums for state management (RentalStatus, PaymentStatus)
+- Middleware patterns for cross-cutting concerns (logging, auth, rate limiting)
+- In-memory data structures for stateful middleware components
 
 ## Development Setup
 - Local Go environment (1.21+)
@@ -56,7 +58,7 @@
 - Environment variables configured in .env file
 
 ## Key Dependencies
-- Go standard library
+- Go standard library (sync, time, net/http packages for core functionality)
 - Gin web framework for routing and middleware
 - JWT-Go for authentication
 - Testify for assertions in tests
@@ -88,3 +90,4 @@
 - Graceful shutdown with context timeout
 - Signal handling for proper shutdown
 - Maximum request header size limitation
+- Rate limiting for API protection (100 requests per minute)

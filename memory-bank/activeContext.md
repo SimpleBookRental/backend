@@ -21,6 +21,7 @@
 - README and documentation created
 - Server configuration and startup sequence implemented
 - Logger integration for system-wide logging
+- Custom IP-based rate limiting implemented for API protection
 
 ## Next Steps
 - Implement user authentication flow (registration, login, JWT)
@@ -54,6 +55,7 @@
 - Middleware chain for request processing
 - Structured error handling with domain-specific types
 - Context-based timeout management
+- In-memory request rate limiting with IP tracking
 
 ## Implementation Guidelines
 - All code comments and documentation in English
