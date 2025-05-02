@@ -58,6 +58,17 @@ type BookSearchRequest struct {
 }
 
 // GetByID handles getting a book by ID
+// @Summary      Get a book by ID
+// @Description  Retrieve a single book by its ID
+// @Tags         books
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "Book ID"
+// @Success      200  {object}  domain.Book
+// @Failure      400  {object}  domain.ErrorResponse
+// @Failure      404  {object}  domain.ErrorResponse
+// @Failure      500  {object}  domain.ErrorResponse
+// @Router       /books/{id} [get]
 func (h *BookHandler) GetByID(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
@@ -77,6 +88,17 @@ func (h *BookHandler) GetByID(c *gin.Context) {
 }
 
 // List handles listing books with pagination
+// @Summary      List all books
+// @Description  Get a paginated list of all books
+// @Tags         books
+// @Accept       json
+// @Produce      json
+// @Param        limit  query    int     false  "Limit"  default(10)
+// @Param        offset query    int     false  "Offset" default(0)
+// @Success      200    {object} PaginatedResponse{data=[]domain.Book}
+// @Failure      400    {object} domain.ErrorResponse
+// @Failure      500    {object} domain.ErrorResponse
+// @Router       /books [get]
 func (h *BookHandler) List(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
 	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
@@ -92,6 +114,19 @@ func (h *BookHandler) List(c *gin.Context) {
 }
 
 // ListByCategory handles listing books by category with pagination
+// @Summary      List books by category
+// @Description  Get a paginated list of books filtered by category ID
+// @Tags         books
+// @Accept       json
+// @Produce      json
+// @Param        id     path     int     true   "Category ID"
+// @Param        limit  query    int     false  "Limit"  default(10)
+// @Param        offset query    int     false  "Offset" default(0)
+// @Success      200    {object} PaginatedResponse{data=[]domain.Book}
+// @Failure      400    {object} domain.ErrorResponse
+// @Failure      404    {object} domain.ErrorResponse
+// @Failure      500    {object} domain.ErrorResponse
+// @Router       /categories/{id}/books [get]
 func (h *BookHandler) ListByCategory(c *gin.Context) {
 	categoryID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
@@ -114,6 +149,23 @@ func (h *BookHandler) ListByCategory(c *gin.Context) {
 }
 
 // Search handles searching books
+// @Summary      Search books
+// @Description  Search books with various filters
+// @Tags         books
+// @Accept       json
+// @Produce      json
+// @Param        title         query    string  false  "Title"
+// @Param        author        query    string  false  "Author"
+// @Param        isbn          query    string  false  "ISBN"
+// @Param        published_year query    int     false  "Published Year"
+// @Param        category_id   query    int     false  "Category ID"
+// @Param        available     query    bool    false  "Available"
+// @Param        limit         query    int     false  "Limit"  default(10)
+// @Param        offset        query    int     false  "Offset" default(0)
+// @Success      200           {object} PaginatedResponse{data=[]domain.Book}
+// @Failure      400           {object} domain.ErrorResponse
+// @Failure      500           {object} domain.ErrorResponse
+// @Router       /books/search [get]
 func (h *BookHandler) Search(c *gin.Context) {
 	var req BookSearchRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -144,6 +196,19 @@ func (h *BookHandler) Search(c *gin.Context) {
 }
 
 // Create handles creating a book
+// @Summary      Create a new book
+// @Description  Create a new book in the catalog
+// @Tags         books
+// @Accept       json
+// @Produce      json
+// @Param        book  body      BookRequest  true  "Book object"
+// @Success      201   {object}  domain.Book
+// @Failure      400   {object}  domain.ErrorResponse
+// @Failure      401   {object}  domain.ErrorResponse
+// @Failure      403   {object}  domain.ErrorResponse
+// @Failure      500   {object}  domain.ErrorResponse
+// @Security     Bearer
+// @Router       /books [post]
 func (h *BookHandler) Create(c *gin.Context) {
 	// Only admins and librarians can create books
 	userRole, exists := c.Get("userRole")
@@ -188,6 +253,21 @@ func (h *BookHandler) Create(c *gin.Context) {
 }
 
 // Update handles updating a book
+// @Summary      Update a book
+// @Description  Update an existing book's details
+// @Tags         books
+// @Accept       json
+// @Produce      json
+// @Param        id    path      int          true  "Book ID"
+// @Param        book  body      BookRequest  true  "Updated book object"
+// @Success      200   {object}  domain.Book
+// @Failure      400   {object}  domain.ErrorResponse
+// @Failure      401   {object}  domain.ErrorResponse
+// @Failure      403   {object}  domain.ErrorResponse
+// @Failure      404   {object}  domain.ErrorResponse
+// @Failure      500   {object}  domain.ErrorResponse
+// @Security     Bearer
+// @Router       /books/{id} [put]
 func (h *BookHandler) Update(c *gin.Context) {
 	// Only admins and librarians can update books
 	userRole, exists := c.Get("userRole")
@@ -244,6 +324,21 @@ func (h *BookHandler) Update(c *gin.Context) {
 }
 
 // UpdateCopies handles updating book copies
+// @Summary      Update book copies
+// @Description  Update the number of total and available copies of a book
+// @Tags         books
+// @Accept       json
+// @Produce      json
+// @Param        id    path      int                true  "Book ID"
+// @Param        copies body     BookCopiesRequest  true  "Updated copies information"
+// @Success      200   {object}  domain.Book
+// @Failure      400   {object}  domain.ErrorResponse
+// @Failure      401   {object}  domain.ErrorResponse
+// @Failure      403   {object}  domain.ErrorResponse
+// @Failure      404   {object}  domain.ErrorResponse
+// @Failure      500   {object}  domain.ErrorResponse
+// @Security     Bearer
+// @Router       /books/{id}/copies [patch]
 func (h *BookHandler) UpdateCopies(c *gin.Context) {
 	// Only admins and librarians can update book copies
 	userRole, exists := c.Get("userRole")
@@ -283,6 +378,20 @@ func (h *BookHandler) UpdateCopies(c *gin.Context) {
 }
 
 // Delete handles deleting a book
+// @Summary      Delete a book
+// @Description  Delete a book from the catalog
+// @Tags         books
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "Book ID"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  domain.ErrorResponse
+// @Failure      401  {object}  domain.ErrorResponse
+// @Failure      403  {object}  domain.ErrorResponse
+// @Failure      404  {object}  domain.ErrorResponse
+// @Failure      500  {object}  domain.ErrorResponse
+// @Security     Bearer
+// @Router       /books/{id} [delete]
 func (h *BookHandler) Delete(c *gin.Context) {
 	// Only admins and librarians can delete books
 	userRole, exists := c.Get("userRole")

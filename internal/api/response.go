@@ -10,21 +10,21 @@ import (
 
 // Response represents a standard API response
 type Response struct {
-	Success bool        `json:"success"`
-	Message string      `json:"message,omitempty"`
+	Success bool        `json:"success" example:"true"`
+	Message string      `json:"message,omitempty" example:"Operation successful"`
 	Data    interface{} `json:"data,omitempty"`
 	Error   string      `json:"error,omitempty"`
 }
 
 // PaginatedResponse represents a paginated API response
 type PaginatedResponse struct {
-	Success bool        `json:"success"`
-	Message string      `json:"message,omitempty"`
+	Success bool        `json:"success" example:"true"`
+	Message string      `json:"message,omitempty" example:"Data retrieved successfully"`
 	Data    interface{} `json:"data,omitempty"`
 	Error   string      `json:"error,omitempty"`
-	Total   int64       `json:"total"`
-	Limit   int32       `json:"limit"`
-	Offset  int32       `json:"offset"`
+	Total   int64       `json:"total" example:"100"`
+	Limit   int32       `json:"limit" example:"10"`
+	Offset  int32       `json:"offset" example:"0"`
 }
 
 // NewSuccessResponse creates a new success response

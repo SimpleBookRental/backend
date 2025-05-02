@@ -64,3 +64,21 @@ build:
 run:
 	@echo "Running development server..."
 	@go run cmd/api/main.go
+
+# Install Swagger tooling
+.PHONY: swagger-install
+swagger-install:
+	@echo "Installing Swagger tooling..."
+	@go install github.com/swaggo/swag/cmd/swag@latest
+
+# Generate Swagger documentation
+.PHONY: swagger
+swagger:
+	@echo "Generating Swagger documentation..."
+	@swag init -g cmd/api/main.go -o docs
+
+# Format Swagger annotations
+.PHONY: swagger-fmt
+swagger-fmt:
+	@echo "Formatting Swagger annotations..."
+	@swag fmt

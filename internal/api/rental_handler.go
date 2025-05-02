@@ -29,17 +29,31 @@ func NewRentalHandler(rentalService domain.RentalService, jwtService *auth.JWTSe
 
 // RentalRequest represents a rental request
 type RentalRequest struct {
-	BookID     int64     `json:"book_id" binding:"required"`
-	RentalDate time.Time `json:"rental_date"`
-	DueDate    time.Time `json:"due_date"`
+	BookID     int64     `json:"book_id" binding:"required" example:"1"`
+	RentalDate time.Time `json:"rental_date" example:"2025-05-01T10:00:00Z"`
+	DueDate    time.Time `json:"due_date" example:"2025-05-15T10:00:00Z"`
 }
 
 // ExtendRentalRequest represents a rental extension request
 type ExtendRentalRequest struct {
-	Days int `json:"days" binding:"required,min=1"`
+	Days int `json:"days" binding:"required,min=1" example:"7"`
 }
 
 // GetByID handles getting a rental by ID
+// @Summary      Get a rental by ID
+// @Description  Retrieve a single rental by its ID. Users can only view their own rentals unless they are admins/librarians.
+// @Tags         rentals
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "Rental ID"
+// @Success      200  {object}  domain.Rental
+// @Failure      400  {object}  domain.ErrorResponse
+// @Failure      401  {object}  domain.ErrorResponse
+// @Failure      403  {object}  domain.ErrorResponse
+// @Failure      404  {object}  domain.ErrorResponse
+// @Failure      500  {object}  domain.ErrorResponse
+// @Security     Bearer
+// @Router       /rentals/{id} [get]
 func (h *RentalHandler) GetByID(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
@@ -74,6 +88,19 @@ func (h *RentalHandler) GetByID(c *gin.Context) {
 }
 
 // List handles listing rentals with pagination
+// @Summary      List all rentals
+// @Description  Get a paginated list of all rentals. Only admins and librarians can access this endpoint.
+// @Tags         rentals
+// @Accept       json
+// @Produce      json
+// @Param        limit  query    int     false  "Limit"  default(10)
+// @Param        offset query    int     false  "Offset" default(0)
+// @Success      200    {object} PaginatedResponse{data=[]domain.Rental}
+// @Failure      401    {object} domain.ErrorResponse
+// @Failure      403    {object} domain.ErrorResponse
+// @Failure      500    {object} domain.ErrorResponse
+// @Security     Bearer
+// @Router       /rentals [get]
 func (h *RentalHandler) List(c *gin.Context) {
 	// Only admins and librarians can list all rentals
 	userRole, exists := c.Get("userRole")
@@ -102,6 +129,21 @@ func (h *RentalHandler) List(c *gin.Context) {
 }
 
 // ListByUser handles listing rentals for a specific user with pagination
+// @Summary      List user rentals
+// @Description  Get a paginated list of rentals for a specific user. Users can only view their own rentals unless they are admins/librarians.
+// @Tags         rentals
+// @Accept       json
+// @Produce      json
+// @Param        userId path     int     true   "User ID"
+// @Param        limit  query    int     false  "Limit"  default(10)
+// @Param        offset query    int     false  "Offset" default(0)
+// @Success      200    {object} PaginatedResponse{data=[]domain.Rental}
+// @Failure      400    {object} domain.ErrorResponse
+// @Failure      401    {object} domain.ErrorResponse
+// @Failure      403    {object} domain.ErrorResponse
+// @Failure      500    {object} domain.ErrorResponse
+// @Security     Bearer
+// @Router       /rentals/user/{userId} [get]
 func (h *RentalHandler) ListByUser(c *gin.Context) {
 	userID, err := strconv.ParseInt(c.Param("userId"), 10, 64)
 	if err != nil {
@@ -139,6 +181,19 @@ func (h *RentalHandler) ListByUser(c *gin.Context) {
 }
 
 // Create handles creating a rental
+// @Summary      Create a rental
+// @Description  Create a new book rental for the authenticated user
+// @Tags         rentals
+// @Accept       json
+// @Produce      json
+// @Param        rental body      RentalRequest true "Rental information"
+// @Success      201   {object}   domain.Rental
+// @Failure      400   {object}   domain.ErrorResponse
+// @Failure      401   {object}   domain.ErrorResponse
+// @Failure      404   {object}   domain.ErrorResponse
+// @Failure      500   {object}   domain.ErrorResponse
+// @Security     Bearer
+// @Router       /rentals [post]
 func (h *RentalHandler) Create(c *gin.Context) {
 	// Get user ID from context
 	userID, exists := c.Get("userID")
@@ -173,6 +228,20 @@ func (h *RentalHandler) Create(c *gin.Context) {
 }
 
 // Return handles returning a rental
+// @Summary      Return a rental
+// @Description  Return a rented book, calculates any late fees if applicable
+// @Tags         rentals
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "Rental ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  domain.ErrorResponse
+// @Failure      401  {object}  domain.ErrorResponse
+// @Failure      403  {object}  domain.ErrorResponse
+// @Failure      404  {object}  domain.ErrorResponse
+// @Failure      500  {object}  domain.ErrorResponse
+// @Security     Bearer
+// @Router       /rentals/{id}/return [put]
 func (h *RentalHandler) Return(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
@@ -227,6 +296,21 @@ func (h *RentalHandler) Return(c *gin.Context) {
 }
 
 // Extend handles extending a rental
+// @Summary      Extend a rental
+// @Description  Extend a rental's due date by a specified number of days
+// @Tags         rentals
+// @Accept       json
+// @Produce      json
+// @Param        id      path      int                 true  "Rental ID"
+// @Param        extend  body      ExtendRentalRequest true  "Extension information"
+// @Success      200     {object}  domain.Rental
+// @Failure      400     {object}  domain.ErrorResponse
+// @Failure      401     {object}  domain.ErrorResponse
+// @Failure      403     {object}  domain.ErrorResponse
+// @Failure      404     {object}  domain.ErrorResponse
+// @Failure      500     {object}  domain.ErrorResponse
+// @Security     Bearer
+// @Router       /rentals/{id}/extend [put]
 func (h *RentalHandler) Extend(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {

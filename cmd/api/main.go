@@ -17,7 +17,27 @@ import (
 	"github.com/SimpleBookRental/backend/pkg/config"
 	"github.com/SimpleBookRental/backend/pkg/logger"
 	"github.com/gin-gonic/gin"
+	_ "github.com/SimpleBookRental/backend/docs" // Import generated docs
 )
+
+// @title           Book Rental System API
+// @version         1.0
+// @description     API for the Book Rental System - a virtual library management system.
+// @termsOfService  http://swagger.io/terms/
+
+// @contact.name   API Support
+// @contact.email  support@simplebookrental.com
+
+// @license.name  Apache 2.0
+// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host      localhost:8080
+// @BasePath  /api/v1
+
+// @securityDefinitions.apikey  Bearer
+// @in                          header
+// @name                        Authorization
+// @description                 JWT token for authentication. Use format: Bearer {token}
 
 func main() {
 	// Load configuration

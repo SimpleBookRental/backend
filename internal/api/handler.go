@@ -7,6 +7,8 @@ import (
 	"github.com/SimpleBookRental/backend/pkg/config"
 	"github.com/SimpleBookRental/backend/pkg/logger"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 // Handler is a factory for all API handlers
@@ -140,4 +142,7 @@ func (h *Handler) RegisterRoutes(router *gin.Engine, middleware *Middleware) {
 			reports.GET("/overdue", middleware.RoleMiddleware(domain.RoleLibrarian), h.ReportHandler.GetOverdueBooks)
 		}
 	}
+
+	// Swagger documentation endpoint
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 }

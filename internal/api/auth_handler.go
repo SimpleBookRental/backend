@@ -29,31 +29,42 @@ func NewAuthHandler(authService service.AuthService, jwtService *auth.JWTService
 
 // RegisterRequest represents a user registration request
 type RegisterRequest struct {
-	Username  string `json:"username" binding:"required,min=3,max=50"`
-	Email     string `json:"email" binding:"required,email"`
-	Password  string `json:"password" binding:"required,min=6"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
+	Username  string `json:"username" binding:"required,min=3,max=50" example:"johndoe"`
+	Email     string `json:"email" binding:"required,email" example:"john.doe@example.com"`
+	Password  string `json:"password" binding:"required,min=6" example:"password123"`
+	FirstName string `json:"first_name" example:"John"`
+	LastName  string `json:"last_name" example:"Doe"`
 }
 
 // LoginRequest represents a user login request
 type LoginRequest struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	Username string `json:"username" binding:"required" example:"johndoe"`
+	Password string `json:"password" binding:"required" example:"password123"`
 }
 
 // RefreshTokenRequest represents a token refresh request
 type RefreshTokenRequest struct {
-	RefreshToken string `json:"refresh_token" binding:"required"`
+	RefreshToken string `json:"refresh_token" binding:"required" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
 }
 
 // TokenResponse represents a token response
 type TokenResponse struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
+	AccessToken  string `json:"access_token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
+	RefreshToken string `json:"refresh_token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
 }
 
 // Register handles user registration
+// @Summary      Register a new user
+// @Description  Register a new user with member role
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        user  body      RegisterRequest  true  "User registration information"
+// @Success      201   {object}  domain.User
+// @Failure      400   {object}  domain.ErrorResponse
+// @Failure      409   {object}  domain.ErrorResponse
+// @Failure      500   {object}  domain.ErrorResponse
+// @Router       /auth/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -81,6 +92,17 @@ func (h *AuthHandler) Register(c *gin.Context) {
 }
 
 // Login handles user login
+// @Summary      Login user
+// @Description  Authenticate user and return access & refresh tokens
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        credentials  body      LoginRequest  true  "User credentials"
+// @Success      200          {object}  TokenResponse
+// @Failure      400          {object}  domain.ErrorResponse
+// @Failure      401          {object}  domain.ErrorResponse
+// @Failure      500          {object}  domain.ErrorResponse
+// @Router       /auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -105,6 +127,17 @@ func (h *AuthHandler) Login(c *gin.Context) {
 }
 
 // RefreshToken handles token refresh
+// @Summary      Refresh token
+// @Description  Generate new access and refresh tokens using a valid refresh token
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        token  body      RefreshTokenRequest  true  "Refresh token"
+// @Success      200    {object}  TokenResponse
+// @Failure      400    {object}  domain.ErrorResponse
+// @Failure      401    {object}  domain.ErrorResponse
+// @Failure      500    {object}  domain.ErrorResponse
+// @Router       /auth/refresh [post]
 func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	var req RefreshTokenRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -129,6 +162,16 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 }
 
 // Logout handles user logout
+// @Summary      Logout user
+// @Description  Invalidate the current user's token
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  map[string]string
+// @Failure      401  {object}  domain.ErrorResponse
+// @Failure      500  {object}  domain.ErrorResponse
+// @Security     Bearer
+// @Router       /auth/logout [post]
 func (h *AuthHandler) Logout(c *gin.Context) {
 	authHeader := c.GetHeader("Authorization")
 	if authHeader == "" {

@@ -53,6 +53,12 @@ var (
 	ErrInvalidPaymentStatus = errors.New("invalid payment status")
 )
 
+// ErrorResponse represents an error response for API
+type ErrorResponse struct {
+	Success bool   `json:"success" example:"false"`
+	Error   string `json:"error" example:"Resource not found"`
+}
+
 // AppError represents an application error
 type AppError struct {
 	Err     error

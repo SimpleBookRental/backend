@@ -29,11 +29,22 @@ func NewCategoryHandler(categoryService domain.CategoryService, jwtService *auth
 
 // CategoryRequest represents a category request
 type CategoryRequest struct {
-	Name        string `json:"name" binding:"required"`
-	Description string `json:"description"`
+	Name        string `json:"name" binding:"required" example:"Fiction"`
+	Description string `json:"description" example:"Books of fiction genre including novels, short stories, etc."`
 }
 
 // GetByID handles getting a category by ID
+// @Summary      Get a category by ID
+// @Description  Retrieve a single category by its ID
+// @Tags         categories
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "Category ID"
+// @Success      200  {object}  domain.Category
+// @Failure      400  {object}  domain.ErrorResponse
+// @Failure      404  {object}  domain.ErrorResponse
+// @Failure      500  {object}  domain.ErrorResponse
+// @Router       /categories/{id} [get]
 func (h *CategoryHandler) GetByID(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
@@ -53,6 +64,17 @@ func (h *CategoryHandler) GetByID(c *gin.Context) {
 }
 
 // List handles listing categories with pagination
+// @Summary      List categories
+// @Description  Get a paginated list of categories
+// @Tags         categories
+// @Accept       json
+// @Produce      json
+// @Param        limit  query    int     false  "Limit"  default(10)
+// @Param        offset query    int     false  "Offset" default(0)
+// @Success      200    {object} PaginatedResponse{data=[]domain.Category}
+// @Failure      400    {object} domain.ErrorResponse
+// @Failure      500    {object} domain.ErrorResponse
+// @Router       /categories [get]
 func (h *CategoryHandler) List(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
 	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
@@ -68,6 +90,14 @@ func (h *CategoryHandler) List(c *gin.Context) {
 }
 
 // ListAll handles listing all categories
+// @Summary      List all categories
+// @Description  Get a list of all categories without pagination
+// @Tags         categories
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  Response{data=[]domain.Category}
+// @Failure      500  {object}  domain.ErrorResponse
+// @Router       /categories/all [get]
 func (h *CategoryHandler) ListAll(c *gin.Context) {
 	categories, err := h.categoryService.ListAll()
 	if err != nil {
@@ -80,6 +110,19 @@ func (h *CategoryHandler) ListAll(c *gin.Context) {
 }
 
 // Create handles creating a category
+// @Summary      Create a category
+// @Description  Create a new book category
+// @Tags         categories
+// @Accept       json
+// @Produce      json
+// @Param        category  body      CategoryRequest  true  "Category object"
+// @Success      201       {object}  domain.Category
+// @Failure      400       {object}  domain.ErrorResponse
+// @Failure      401       {object}  domain.ErrorResponse
+// @Failure      403       {object}  domain.ErrorResponse
+// @Failure      500       {object}  domain.ErrorResponse
+// @Security     Bearer
+// @Router       /categories [post]
 func (h *CategoryHandler) Create(c *gin.Context) {
 	// Only admins and librarians can create categories
 	userRole, exists := c.Get("userRole")
@@ -117,6 +160,21 @@ func (h *CategoryHandler) Create(c *gin.Context) {
 }
 
 // Update handles updating a category
+// @Summary      Update a category
+// @Description  Update an existing category's details
+// @Tags         categories
+// @Accept       json
+// @Produce      json
+// @Param        id        path      int              true  "Category ID"
+// @Param        category  body      CategoryRequest  true  "Updated category object"
+// @Success      200       {object}  domain.Category
+// @Failure      400       {object}  domain.ErrorResponse
+// @Failure      401       {object}  domain.ErrorResponse
+// @Failure      403       {object}  domain.ErrorResponse
+// @Failure      404       {object}  domain.ErrorResponse
+// @Failure      500       {object}  domain.ErrorResponse
+// @Security     Bearer
+// @Router       /categories/{id} [put]
 func (h *CategoryHandler) Update(c *gin.Context) {
 	// Only admins and librarians can update categories
 	userRole, exists := c.Get("userRole")
@@ -168,6 +226,20 @@ func (h *CategoryHandler) Update(c *gin.Context) {
 }
 
 // Delete handles deleting a category
+// @Summary      Delete a category
+// @Description  Delete a category from the system
+// @Tags         categories
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "Category ID"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  domain.ErrorResponse
+// @Failure      401  {object}  domain.ErrorResponse
+// @Failure      403  {object}  domain.ErrorResponse
+// @Failure      404  {object}  domain.ErrorResponse
+// @Failure      500  {object}  domain.ErrorResponse
+// @Security     Bearer
+// @Router       /categories/{id} [delete]
 func (h *CategoryHandler) Delete(c *gin.Context) {
 	// Only admins and librarians can delete categories
 	userRole, exists := c.Get("userRole")

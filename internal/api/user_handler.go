@@ -29,20 +29,34 @@ func NewUserHandler(userService domain.UserService, jwtService *auth.JWTService,
 
 // UpdateUserRequest represents a user update request
 type UpdateUserRequest struct {
-	Username  string         `json:"username"`
-	Email     string         `json:"email"`
-	FirstName string         `json:"first_name"`
-	LastName  string         `json:"last_name"`
-	Role      domain.UserRole `json:"role"`
+	Username  string         `json:"username" example:"johndoe"`
+	Email     string         `json:"email" example:"john.doe@example.com"`
+	FirstName string         `json:"first_name" example:"John"`
+	LastName  string         `json:"last_name" example:"Doe"`
+	Role      domain.UserRole `json:"role" example:"member"`
 }
 
 // ChangePasswordRequest represents a password change request
 type ChangePasswordRequest struct {
-	CurrentPassword string `json:"current_password" binding:"required"`
-	NewPassword     string `json:"new_password" binding:"required,min=6"`
+	CurrentPassword string `json:"current_password" binding:"required" example:"oldpassword"`
+	NewPassword     string `json:"new_password" binding:"required,min=6" example:"newpassword123"`
 }
 
 // GetByID handles getting a user by ID
+// @Summary      Get a user by ID
+// @Description  Retrieve a single user by their ID. Users can only view their own profile unless they are admins.
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "User ID"
+// @Success      200  {object}  domain.User
+// @Failure      400  {object}  domain.ErrorResponse
+// @Failure      401  {object}  domain.ErrorResponse
+// @Failure      403  {object}  domain.ErrorResponse
+// @Failure      404  {object}  domain.ErrorResponse
+// @Failure      500  {object}  domain.ErrorResponse
+// @Security     Bearer
+// @Router       /users/{id} [get]
 func (h *UserHandler) GetByID(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
@@ -77,6 +91,19 @@ func (h *UserHandler) GetByID(c *gin.Context) {
 }
 
 // List handles listing users
+// @Summary      List all users
+// @Description  Get a paginated list of all users. Only admins can access this endpoint.
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        limit  query    int     false  "Limit"  default(10)
+// @Param        offset query    int     false  "Offset" default(0)
+// @Success      200    {object} PaginatedResponse{data=[]domain.User}
+// @Failure      401    {object} domain.ErrorResponse
+// @Failure      403    {object} domain.ErrorResponse
+// @Failure      500    {object} domain.ErrorResponse
+// @Security     Bearer
+// @Router       /users [get]
 func (h *UserHandler) List(c *gin.Context) {
 	// Only admins can list all users
 	userRole, exists := c.Get("userRole")
@@ -99,6 +126,21 @@ func (h *UserHandler) List(c *gin.Context) {
 }
 
 // Update handles updating a user
+// @Summary      Update a user
+// @Description  Update a user's profile information. Users can only update their own profile unless they are admins. Only admins can update user roles.
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        id    path      int               true  "User ID"
+// @Param        user  body      UpdateUserRequest true  "Updated user information"
+// @Success      200   {object}  domain.User
+// @Failure      400   {object}  domain.ErrorResponse
+// @Failure      401   {object}  domain.ErrorResponse
+// @Failure      403   {object}  domain.ErrorResponse
+// @Failure      404   {object}  domain.ErrorResponse
+// @Failure      500   {object}  domain.ErrorResponse
+// @Security     Bearer
+// @Router       /users/{id} [put]
 func (h *UserHandler) Update(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
@@ -167,6 +209,20 @@ func (h *UserHandler) Update(c *gin.Context) {
 }
 
 // Delete handles deleting a user
+// @Summary      Delete a user
+// @Description  Delete a user from the system. Only admins can delete users.
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "User ID"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  domain.ErrorResponse
+// @Failure      401  {object}  domain.ErrorResponse
+// @Failure      403  {object}  domain.ErrorResponse
+// @Failure      404  {object}  domain.ErrorResponse
+// @Failure      500  {object}  domain.ErrorResponse
+// @Security     Bearer
+// @Router       /users/{id} [delete]
 func (h *UserHandler) Delete(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
@@ -193,6 +249,21 @@ func (h *UserHandler) Delete(c *gin.Context) {
 }
 
 // ChangePassword handles changing a user's password
+// @Summary      Change user password
+// @Description  Change a user's password. Users can only change their own password.
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        id         path      int                   true  "User ID"
+// @Param        passwords  body      ChangePasswordRequest true  "Password change information"
+// @Success      200        {object}  map[string]string
+// @Failure      400        {object}  domain.ErrorResponse
+// @Failure      401        {object}  domain.ErrorResponse
+// @Failure      403        {object}  domain.ErrorResponse
+// @Failure      404        {object}  domain.ErrorResponse
+// @Failure      500        {object}  domain.ErrorResponse
+// @Security     Bearer
+// @Router       /users/{id}/change-password [post]
 func (h *UserHandler) ChangePassword(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
