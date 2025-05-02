@@ -1,6 +1,17 @@
 # Active Context: Book Rental System
 
 ## Current Focus
+- Integration testing setup and improvements
+- Configuration management for test environments
+- Health check endpoints for basic connectivity testing
+- Database connection configuration for local development vs Docker environments
+
+## Recent Changes
+- Added health check endpoint ("/ping") for basic API connectivity testing
+- Created configuration tests to verify environment variable loading
+- Updated database host configuration in .env file (localhost to 127.0.0.1)
+- Fixed integration test setup for main API server
+- Implemented proper test database configuration validation
 - Project initialization and structure setup
 - Core domain entity definition and interface design
 - Repository and service interface implementation
@@ -9,28 +20,10 @@
 - Authentication system implementation with JWT
 - API documentation with Swagger
 
-## Recent Changes
-- Initial project setup with Clean Architecture structure
-- Core domains defined with detailed interfaces:
-  - User: Authentication and profile management
-  - Book: Catalog management with availability tracking
-  - Category: Book categorization system
-  - Rental: Borrowing records and status tracking
-  - Payment: Financial transaction recording
-- Database schema designed with migration files ready
-- API handlers structured for main endpoints
-- README and documentation created
-- Server configuration and startup sequence implemented
-- Logger integration for system-wide logging
-- Custom IP-based rate limiting implemented for API protection
-- Swagger API documentation implemented:
-  - Added annotations to all handler functions across all domains
-  - Added examples to request/response models
-  - Created ErrorResponse struct for consistent API documentation
-  - Set up Swagger UI endpoint at /swagger/*
-  - Added Makefile commands for Swagger generation and formatting
-
 ## Next Steps
+- Fix configuration loading in test environment
+- Address database connection issues in integration tests
+- Complete remaining integration tests
 - Implement user authentication flow (registration, login, JWT)
 - Complete book catalog management functionality
 - Develop rental creation and management operations
@@ -43,6 +36,9 @@
 - Add more detailed examples to API documentation
 
 ## Active Decisions
+- Integration tests should run with local database (127.0.0.1) instead of Docker service name
+- Health check endpoints should be available without authentication
+- Environment-specific configuration loading for tests vs production
 - Using Clean Architecture with four main layers (domain, repository, service, API)
 - Following RESTful API design principles
 - Implementing role-based access control (Admin, Librarian, Member)
@@ -55,6 +51,8 @@
 - OpenAPI/Swagger for API documentation and exploration
 
 ## Technical Patterns
+- Health check endpoints for basic connectivity verification
+- Environment-specific configuration loading
 - Domain entities with validation logic
 - Interface-driven development for testability
 - Repository pattern with complete CRUD operations
@@ -80,3 +78,4 @@
 - Keep Swagger annotations up-to-date with code changes
 - Provide examples for all request/response models
 - Document security requirements for all endpoints
+- Integration tests should be independent of the main application configuration

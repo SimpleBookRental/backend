@@ -27,8 +27,13 @@
   - Example values for all model properties
   - Authentication requirements specified for each endpoint
   - Makefile commands for easy generation and updating
+- Health check endpoint ("/ping") for basic API connectivity testing
+- Integration test infrastructure with configurable environment
 
 ## What's Left to Build
+- Fix configuration loading in test environment
+- Address database connection issues in integration tests
+- Complete remaining integration tests
 - API endpoints integration testing
 - User interface implementation
 - Email notification system for due dates and overdue books
@@ -47,19 +52,25 @@
 - ✅ Payment processing
 - ✅ Reporting and analytics functionality
 - ✅ API documentation and usage examples
-- ❌ Integration tests (pending)
+- ✅ Basic health check endpoint
+- ⚠️ Integration tests (in progress)
 
 ## Current Status
-- **Phase**: Core Implementation Complete
+- **Phase**: Core Implementation Complete, Testing In Progress
 - **Progress**: ~85% complete (includes all core business logic and API documentation)
-- **Focus Area**: Testing and integration
-- **Priority**: API integration testing
-- **Key Milestone**: All core business logic implemented and documented
+- **Focus Area**: Integration testing and environment configuration
+- **Priority**: Fixing database configuration for integration tests
+- **Key Milestone**: Basic health check endpoint working, other tests failing due to database configuration issues
 
 ## Known Issues
-- None identified yet - all critical components implemented
+- Integration tests failing due to database connection issues
+- Configuration not properly loading from .env file in test environment
+- Database host set to container name in default configuration causing issues in non-containerized tests
 
 ## Evolution of Decisions
+- Added health check endpoint for basic API connectivity verification
+- Updated configuration approach to better handle test vs. production environments
+- Modified database connection configuration to support local development
 - Decided on Clean Architecture for maintainability and testability
 - Selected Gin framework for API development
 - Implemented consistent interface patterns across all domain entities
