@@ -11,6 +11,7 @@
 - **Authentication**: JWT (JSON Web Tokens)
 - **Documentation**: Markdown files
 - **Version Control**: Git
+- **Logging**: Structured logging system
 
 ## Project Structure
 - **cmd/**: Application entry points
@@ -29,6 +30,10 @@
   - Sequential migration files for schema changes
 - **scripts/**: Utility scripts
 - **tests/**: Integration tests
+- **pkg/**: Shared packages and utilities
+  - **auth/**: JWT authentication service
+  - **config/**: Configuration loading
+  - **logger/**: Structured logging system
 
 ## Domain Model Design
 - **User**: Authentication and profile management with role-based access
@@ -75,3 +80,11 @@
 - `make build`: Create production binary
 - `make docker-build`: Create Docker image
 - `make docker-run`: Run application in Docker
+
+## Server Configuration
+- Mode-based configuration (development/release)
+- Configurable server port
+- Read and write timeouts
+- Graceful shutdown with context timeout
+- Signal handling for proper shutdown
+- Maximum request header size limitation

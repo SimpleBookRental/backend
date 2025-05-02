@@ -6,6 +6,7 @@
 - Repository and service interface implementation
 - API endpoint handlers development
 - Database schema implementation
+- Authentication system implementation with JWT
 
 ## Recent Changes
 - Initial project setup with Clean Architecture structure
@@ -18,6 +19,8 @@
 - Database schema designed with migration files ready
 - API handlers structured for main endpoints
 - README and documentation created
+- Server configuration and startup sequence implemented
+- Logger integration for system-wide logging
 
 ## Next Steps
 - Implement user authentication flow (registration, login, JWT)
@@ -25,6 +28,9 @@
 - Develop rental creation and management operations
 - Implement payment processing system
 - Add reporting and analytics functionality
+- Implement remaining repository layer implementations
+- Expand service layer with business logic
+- Add comprehensive unit and integration tests
 
 ## Active Decisions
 - Using Clean Architecture with four main layers (domain, repository, service, API)
@@ -33,6 +39,9 @@
 - Using PostgreSQL for data persistence
 - Docker-based development environment
 - Interface-first approach for component design
+- Graceful server shutdown with context timeout
+- Structured logging throughout application
+- Environment-based configuration management
 
 ## Technical Patterns
 - Domain entities with validation logic
@@ -43,6 +52,8 @@
 - Search parameter objects for filtering
 - JWT-based authentication
 - Middleware chain for request processing
+- Structured error handling with domain-specific types
+- Context-based timeout management
 
 ## Implementation Guidelines
 - All code comments and documentation in English
@@ -51,3 +62,4 @@
 - Unit tests for all business logic
 - Interface mocking for dependency isolation
 - Consistent naming conventions across layers
+- Graceful shutdown handling for production stability
